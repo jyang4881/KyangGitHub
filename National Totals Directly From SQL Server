@@ -1,0 +1,256 @@
+#######DATA COLLECTION#########
+
+boudevsql5 <- odbcDriverConnect(connection="Driver={SQL Server Native Client 11.0};server=Boudevsql5;trusted_connection=yes;")
+use1b_sql04 <- odbcDriverConnect(connection="Driver={SQL Server Native Client 11.0};server=use1b-sql04;trusted_connection=yes;")
+
+
+FALCON <- sqlQuery(boudevsql5, "SELECT E.Admit_year, E.Admit_month,'PR' [Table], PR.icd_procedure_code as Code, PM.PAYER_TYPE_FINAL as PayerType, E.Age, COUNT(Distinct E.RecordID) as Count
+  					FROM [Falcon].[dbo].Episodes E
+ 					INNER JOIN [Falcon].[dbo].[Procedures] PR ON E.RecordID = PR.RecordID
+  					INNER JOIN [Falcon].[dbo].[Payers] P ON E.RecordID = P.RecordID
+ 					INNER JOIN [Falcon].[dbo].[PayersMapping] PM ON PM.Distinct_payers_ins_desc = P.payers_ins_desc 
+					WHERE PR.icd_procedure_code IN (######### ADD PROCEDURE CODES HERE (WITH DOT) #########)  
+					GROUP BY E.Admit_year, E.Admit_month, PR.icd_procedure_code, PM.PAYER_TYPE_FINAL, E.Age")
+
+
+
+
+LDS  <- sqlQuery(use1b_sql04, "with tabletest2 as		
+(		
+select year(prcdr_dt) as Year,
+	   month(prcdr_dt) as Month,		
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2012.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2012		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd	
+union 		
+select year(prcdr_dt) as Year,
+		month(prcdr_dt) as Month,			
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2013.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2012		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd			
+union 		
+select year(prcdr_dt) as Year,
+       month(prcdr_dt) as Month,			
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2013.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2013		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+union		
+select year(prcdr_dt) as Year,
+       month(prcdr_dt) as Month,		
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2014.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2013		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+union 		
+select year(prcdr_dt) as Year,	
+       month(prcdr_dt) as Month,	
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2014.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2014		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+union 		
+select year(prcdr_dt) as Year,
+       month(prcdr_dt) as Month,		
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2015.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2014		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+union 		
+select year(prcdr_dt) as Year,
+       month(prcdr_dt) as Month,		
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2015.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2015		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd			
+union 		
+select year(prcdr_dt) as Year,
+       month(prcdr_dt) as Month,		
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2016.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2015		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd			
+union 		
+select year(prcdr_dt) as Year,
+       month(prcdr_dt) as Month,		
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2016.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2016		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+union 		
+select year(prcdr_dt) as Year,
+       month(prcdr_dt) as Month,		
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2017.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2016		
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd			
+union 			
+select year(prcdr_dt) as Year,
+       month(prcdr_dt) as Month,		
+		icd_prcdr_cd as Code,
+		count(claim_no) as Vol
+from LDS_2017.dbo.IP_Base_Claim_PROC		
+where icd_prcdr_cd in (######### ADD PROCEDURE CODES HERE (WITHOUT DOT) #########) and year(prcdr_dt) = 2017
+group by year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd
+)
+select Year, Month, Code, sum(Vol) as Vol
+from tabletest2
+group by Code, Year, Month		
+order by Month, Year
+")
+
+
+######NATIONAL TOTAL#######
+
+
+NT_Estimation <- function(vol_df, ratio_df, code = unique(vol_df$Code)) {
+  
+  falcon_data_grouped <- sqldf("select Code, Admit_year, Admit_month, PayerType, sum(count) as Sum_Count
+                               from ratio_df 
+                               group by PayerType, Admit_year, Admit_month, Code 
+                               order by Admit_year, Admit_month, Code")
+
+  falcon_data_grouped$Code <- stri_trim(falcon_data_grouped$Code)
+  vol_df$Code <- stri_trim(vol_df$Code)
+  
+  falcon_data_grouped <- falcon_data_grouped[which((falcon_data_grouped$PayerType != "NULL") & (falcon_data_grouped$PayerType != "OTHER")),]
+  
+  #remove special characters and values with incorrect length
+  
+  falcon_data_grouped$Code <- gsub("[^[:alnum:]]", "",falcon_data_grouped$Code)
+  
+  vol_df$Code <-  gsub("[^[:alnum:]]", "", vol_df$Code)
+
+  falcon_data_grouped['Quarter'] <- 0
+  
+  falcon_data_grouped$Quarter[which(falcon_data_grouped$Admit_month %in% c('1','2','3'))] <- 1
+  falcon_data_grouped$Quarter[which(falcon_data_grouped$Admit_month %in% c('4','5','6'))] <- 2
+  falcon_data_grouped$Quarter[which(falcon_data_grouped$Admit_month %in% c('7','8','9'))] <- 3
+  falcon_data_grouped$Quarter[which(falcon_data_grouped$Admit_month %in% c('10','11','12'))] <- 4
+
+  falcon_data_grouped['Code_Admit_Year_Quarter'] <- ""
+  
+  for (i in 1:nrow(falcon_data_grouped)) {
+    falcon_data_grouped$Code_Admit_Year_Quarter[i] <- paste(paste(as.character(falcon_data_grouped$Code[i]), as.character(falcon_data_grouped$Admit_year[i]), sep = "-"), as.character(falcon_data_grouped$Quarter[i]), sep = "-")
+  } 
+  
+  vol_df['Quarter'] <- 0
+  
+  vol_df$Quarter[which(vol_df$Month %in% c('1','2','3'))] <- 1
+  vol_df$Quarter[which(vol_df$Month %in% c('4','5','6'))] <- 2
+  vol_df$Quarter[which(vol_df$Month %in% c('7','8','9'))] <- 3
+  vol_df$Quarter[which(vol_df$Month %in% c('10','11','12'))] <- 4
+  
+  vol_df['Code_Admit_Year_Quarter'] <- ""
+ 
+  vol_df$Code_Admit_Year_Quarter <- paste(paste(as.character(vol_df$Code), as.character(vol_df$Year), sep = "-"), as.character(vol_df$Quarter), sep = "-")
+
+  vol_df  <- sqldf("select Code, Year,  Sum(Vol) as Sum_Count, Quarter, Code_Admit_Year_Quarter 
+                   from vol_df
+                   group by Code, Year, Quarter 
+                   order by Year, Quarter, Code")
+  
+  
+  falcon_data_grouped  <- sqldf("select Code, Admit_year, PayerType, Sum(Sum_Count) as Sum_Count, Quarter, Code_Admit_Year_Quarter 
+                                from falcon_data_grouped 
+                                group by Code, PayerType, Admit_year, Quarter 
+                                order by Admit_year, Quarter, Code")
+  
+  
+  falcon_data_grouped_sum <- sqldf("select Code_Admit_Year_Quarter, Sum(Sum_Count) as Total_Count, Code, Admit_year, Quarter
+                                   from falcon_data_grouped
+                                   group by Code_Admit_Year_Quarter
+                                   order by Admit_year, Quarter")
+  
+  falcon_data_grouped['Ratio'] <- 0
+  
+  for (i in 1:nrow(falcon_data_grouped)) {
+    falcon_data_grouped$Ratio[i] <- falcon_data_grouped$Sum_Count[i]/(falcon_data_grouped_sum$Total_Count[which(falcon_data_grouped$Code_Admit_Year_Quarter[i] == falcon_data_grouped_sum$Code_Admit_Year_Quarter)])
+  }
+  
+  vol_df['National_Total'] <- 0
+  
+  for (i in 1:nrow(vol_df)) {
+    if (length((falcon_data_grouped$Ratio[which(vol_df$Code_Admit_Year_Quarter[i] == falcon_data_grouped$Code_Admit_Year_Quarter & falcon_data_grouped$PayerType == "MEDICARE TRADITIONAL")])) > 0) {
+      vol_df$National_Total[i] <- vol_df$Sum_Count[i]/(falcon_data_grouped$Ratio[which(vol_df$Code_Admit_Year_Quarter[i] == falcon_data_grouped$Code_Admit_Year_Quarter & 
+                                                                                         falcon_data_grouped$PayerType == "MEDICARE TRADITIONAL")])
+    }
+  }
+  
+  vol_df['MEDICARE'] <- ""
+  
+  for (i in 1:nrow(vol_df)) {
+    vol_df$MEDICARE[i] <- paste(vol_df$Code_Admit_Year_Quarter[i], "MEDICARE TRADITIONAL", sep = "-")
+  }
+  
+  
+  falcon_data_grouped['MEDICARE'] <- ""
+  
+  for (i in 1:nrow(falcon_data_grouped)) {
+    if (falcon_data_grouped$PayerType[i] == "MEDICARE TRADITIONAL") {
+      falcon_data_grouped$MEDICARE[i] <- paste(falcon_data_grouped$Code_Admit_Year_Quarter[i], "MEDICARE TRADITIONAL", sep = "-")
+    }
+  }
+  
+  
+  falcon_data_grouped <- sqldf("select A.Code, A.Admit_year, A.Quarter, A.PayerType, A.Sum_Count, A.Code_Admit_Year_Quarter, A.Ratio, B.National_Total 
+                               from falcon_data_grouped A
+                               left join vol_df B
+                               on A.MEDICARE = B.MEDICARE and A.Code = B.Code")
+  
+  
+  code_y_q <- falcon_data_grouped$Code_Admit_Year_Quarter[which(!is.na(falcon_data_grouped$National_Total) == TRUE)]
+  
+  for (i in 1:length(code_y_q)) {
+    falcon_data_grouped$National_Total[which(falcon_data_grouped$Code_Admit_Year_Quarter == code_y_q[i])] <- ((falcon_data_grouped$National_Total[which(falcon_data_grouped$Code_Admit_Year_Quarter == code_y_q[i])][which(is.na(falcon_data_grouped$National_Total[which(falcon_data_grouped$Code_Admit_Year_Quarter == code_y_q[i])]) == FALSE)])*(falcon_data_grouped$Ratio[which(falcon_data_grouped$Code_Admit_Year_Quarter == code_y_q[i])]))
+  }
+  
+  falcon_data_grouped$National_Total[which(is.na(falcon_data_grouped$National_Total) == TRUE)] <- 0
+  
+  vol_df_nt <- vol_df[(vol_df$Code %in% code), ]
+  
+  falcon_data_grouped_nt <- falcon_data_grouped[(falcon_data_grouped$Code %in% code), ]
+  
+  if (length(code) < length(vol_df$Code)) {
+    sqldf("select Admit_year, Quarter, PayerType, sum(National_Total) as National_Total 
+          from falcon_data_grouped_nt 
+          where National_Total > 0
+          group by PayerType, Quarter, Admit_year
+          order by Admit_year, Quarter")
+  }
+  else {
+    falcon_data_grouped
+  }
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
