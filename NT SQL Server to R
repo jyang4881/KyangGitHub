@@ -1,0 +1,118 @@
+#National Total Extrapolation:
+  
+database1 <- odbcDriverConnect(connection="Driver={SQL Server Native Client 11.0};server=database1;trusted_connection=yes;")
+database2 <- odbcDriverConnect(connection="Driver={SQL Server Native Client 11.0};server=database2;trusted_connection=yes;")
+  
+#Falcon Data:
+    
+    
+ratio_dfx <- sqlQuery(database1, "SELECT E.Admit_year, E.Admit_month,'PR' [Table],PR.icd_procedure_code as Code,PM.PAYER_TYPE_FINAL as PayerType,E.Age,COUNT(Distinct E.RecordID) as Count
+                                  FROM [Falcon].[dbo].Episodes E
+                                  INNER JOIN [Falcon].[dbo].[Procedures] PR ON E.RecordID = PR.RecordID
+                                  INNER JOIN [Falcon].[dbo].[Payers] P ON E.RecordID = P.RecordID
+                                  INNER JOIN [Falcon].[dbo].[PayersMapping] PM ON PM.Distinct_payers_ins_desc = P.payers_ins_desc 
+                                  WHERE PR.icd_procedure_code IN (###add procedure codes here###)  
+                                  GROUP BY E.Admit_year, E.Admit_month,PR.icd_procedure_code,PM.PAYER_TYPE_FINAL,E.Age")
+  
+  
+#LDS Data:
+    
+    
+vol_dfx  <- sqlQuery(database2, "WITH ThisTable as (		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,		
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2012.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2012		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd	
+                                 UNION 		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,			
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2013.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2012		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd			
+                                 UNION 		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,			
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2013.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2013		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+                                 UNION		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,		
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2014.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2013		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+                                 UNION 		
+                                 SELECT year(prcdr_dt) as Year_prc,	
+                                 month(prcdr_dt) as Month_prc,	
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2014.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2014		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+                                 UNION 		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,		
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2015.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2014		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+                                 UNION 		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,		
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2015.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2015		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd			
+                                 UNION 		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,		
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2016.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2015		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd			
+                                 UNION 		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,		
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2016.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2016		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd		
+                                 UNION 		
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,		
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2017.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2016		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd			
+                                 UNION 			
+                                 SELECT year(prcdr_dt) as Year_prc,
+                                 month(prcdr_dt) as Month_prc,		
+                                 icd_prcdr_cd as Code,
+                                 count(claim_no) as Vol
+                                 FROM LDS_2017.dbo.IP_Base_Claim_PROC		
+                                 WHERE icd_prcdr_cd in (###add procedure codes here###) and year(prcdr_dt) = 2017		
+                                 GROUP BY year(prcdr_dt), month(prcdr_dt), icd_prcdr_cd
+                                 )		
+                                 SELECT Year_prc as Year, Month_prc as Month, Code, sum(Vol) as Vol		
+                                 FROM ThisTable		
+                                 GROUP BY Code, year_prc, Month_prc		
+                                 ORDER BY Month_prc, year_prc"
+                     )
+  
+  
+  
+  
