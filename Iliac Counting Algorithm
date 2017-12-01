@@ -1,0 +1,160 @@
+library(readxl)
+
+find_count <- function (file) {
+
+iliac2 <- file[,1:10]
+iliac <- iliac2[,1:2]
+
+colnames(iliac) <- c("claim_no", "ind", "icd_prcdr_cd", "icd_prcdr_vrsn_cd", "prcdr_dt", "procedure_day",  "procedure_month", "procedure_year", "Category", "Description") 
+
+claim_list <- list()
+claim_list[1][[1]] <- iliac$claim_no[1]
+t <- 1
+n <- 1
+
+for (i in 1:(length(iliac$claim_no)-1)) {
+  if(iliac$claim_no[i] == iliac$claim_no[i+1]) {
+    n <- n + 1;
+    claim_list[[t]][n] <- iliac$claim_no[i+1];
+  }
+  else {
+    t <- t + 1;
+    claim_list[[t]] <- iliac$claim_no[i+1];
+    n <- 1;
+    
+  }
+}
+
+
+iliac_cat <- iliac2[,8:9]
+
+cat_list <- list()
+cat_list[1][[1]] <- as.character(iliac2$Category[1])
+t <- 1
+n <- 1
+
+for (i in 1:(length(iliac$claim_no)-1)) {
+  if(iliac$claim_no[i] == iliac$claim_no[i+1]) {
+    n <- n + 1;
+    cat_list[[t]][n] <- as.character(iliac_cat$Category[i+1]);
+  }
+  else {
+    t <- t + 1;
+    cat_list[[t]] <- as.character(iliac_cat$Category[i+1]);
+    n <- 1;
+    
+  }
+}
+
+iliac_desc <- iliac2[,9:10]
+
+desc_list <- list()
+desc_list[1][[1]] <- as.character(iliac2$Description[1])
+t <- 1
+n <- 1
+
+for (i in 1:(length(iliac$claim_no)-1)) {
+  if(iliac$claim_no[i] == iliac$claim_no[i+1]) {
+    n <- n + 1;
+    desc_list[[t]][n] <- as.character(iliac_desc$Description[i+1]);
+  }
+  else {
+    t <- t + 1;
+    desc_list[[t]] <- as.character(iliac_desc$Description[i+1]);
+    n <- 1;
+    
+  }
+}
+
+
+iliac_desc <- iliac2[,2:3]
+
+icd_list <- list()
+icd_list[1][[1]] <- as.character(iliac2$icd_prcdr_cd[1])
+t <- 1
+n <- 1
+
+for (i in 1:(length(iliac$claim_no)-1)) {
+  if(iliac$claim_no[i] == iliac$claim_no[i+1]) {
+    n <- n + 1;
+    icd_list[[t]][n] <- as.character(iliac_desc$icd_prcdr_cd[i+1]);
+  }
+  else {
+    t <- t + 1;
+    icd_list[[t]] <- as.character(iliac_desc$icd_prcdr_cd[i+1]);
+    n <- 1;
+    
+  }
+}
+  
+
+count_list <- c(rep(0, length(cat_list)))
+
+for (i in 1:length(cat_list)) {
+  if ((("Stent" %in% cat_list[[i]]) & ("POBA" %in% cat_list[[i]])) == "FALSE") {
+    count_list[i] <- 1
+    for (j in 1:(length(cat_list[[i]])-1)) {
+    	if (cat_list[[i]][j] == cat_list[[i]][j+1]) {
+        if (substr(icd_list[[i]][j],4,5) != substr(icd_list[[i]][j+1],4,5)) {
+	    count_list[i] <- count_list[i] + 1; 
+	  }
+      }
+      else {
+        count_list[i] <- count_list[i] + 1; 
+	}
+    }
+  }
+  else {
+	count_list[i] <- 0	
+	icd_poba <- as.character(); p <- 1
+ 	icd_stent <- as.character(); s <- 1
+	icd_ather <- as.character(); a <- 1
+
+    for (j in 1:length(cat_list[[i]])) {
+      if (cat_list[[i]][j] == "POBA") {
+	   icd_poba[p] <- paste(cat_list[[i]][j], icd_list[[i]][j], sep = "_"); p <- p + 1;
+	}
+      else if (cat_list[[i]][j] == "Stent") {
+	   icd_stent[s] <- paste(cat_list[[i]][j], icd_list[[i]][j], sep = "_"); s <- s + 1;
+	}
+	else if (cat_list[[i]][j] == "Atherectomy") {
+	   icd_ather[a] <- paste(cat_list[[i]][j], icd_list[[i]][j], sep = "_"); a <- a + 1;
+	} 
+    }
+    count_list[i] <- count_list[i] + length(unique(icd_ather))
+    
+    
+    icd_substr_poba <- as.character(); p <- 1;
+    icd_substr_stent <- as.character(); s <- 1;	
+
+    for (t in 1:length(icd_poba)) {
+      icd_substr_poba[p] <- substr(icd_poba[t],9,10); p <- p + 1;
+    }	
+    for (t in 1:length(icd_stent)) {
+      icd_substr_stent[s] <- substr(icd_stent[t],10,11); s <- s + 1;
+    }
+    
+    count_list[i] <- count_list[i] + length(which(duplicated(c(icd_substr_poba, icd_substr_stent)) == "FALSE"))
+  }	
+}     
+  claim <- as.numeric()
+  for (i in 1:length(claim_list)) {
+    claim[i] <- claim_list[[i]][1]	
+  }
+
+  data.frame(Claim_no = claim, Count_icd_proc = count_list)  
+
+}
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+  
