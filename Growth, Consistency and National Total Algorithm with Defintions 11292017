@@ -1,0 +1,435 @@
+library(readxl)
+library(sqldf)
+library(dplyr)
+library(stringi)
+
+Get_Data <- function (file, 
+                      code_filter = unique(file$PROCEDURE_CODE), 
+                      month_filter = sort(unique(file$PROCEDURE_MONTH), decreasing = FALSE), 
+                      year_filter =  sort(unique(file$PROCEDURE_YEAR), decreasing = FALSE),
+                      time = "Monthly") {
+  
+  data_orderedx <- sqldf("select * from file order by procedure_year, procedure_month")
+  
+  data_ordered <- data_orderedx[which(data_orderedx$PROCEDURE_CODE %in% code_filter & 
+                                        data_orderedx$PROCEDURE_MONTH %in% month_filter &
+                                        data_orderedx$PROCEDURE_YEAR %in% year_filter), ]
+  
+  quarter <- as.character()
+  
+  for (i in 1:length(data_ordered$PATIENT_ID)) {
+    if (data_ordered$PROCEDURE_MONTH[i] < 4) {
+      quarter[i] <- 1
+    }
+    else if (data_ordered$PROCEDURE_MONTH[i] >= 4 & data_ordered$PROCEDURE_MONTH[i] < 7) {
+      quarter[i] <- 2
+    }
+    else if (data_ordered$PROCEDURE_MONTH[i] >= 7 & data_ordered$PROCEDURE_MONTH[i] < 10) {
+      quarter[i] <- 3
+    }
+    else if (data_ordered$PROCEDURE_MONTH[i] >= 10) {
+      quarter[i] <- 4
+    }
+  }
+  
+  year <- unique(data_ordered$PROCEDURE_YEAR)
+  month <- seq(1,12)
+  big_npi_list <- list()
+  
+  for (h in 1:length(year)) {
+    npi_list <- list()
+    for (i in 1:(length(month))) {
+      npi_list[[i]] <- 0
+      names(npi_list)[i] <- as.character(paste(year[h], month[i], sep = "-"))
+    }
+    
+    for (i in 1:length(month)) {
+      npi_list[[i]] <- data_ordered$ORGANIZATION_NPI[which(data_ordered$PROCEDURE_MONTH == i & data_ordered$PROCEDURE_YEAR == year[h])]
+    }
+    
+    big_npi_list <- c(big_npi_list, npi_list)
+    
+  }
+  
+  for (i in 1:length(big_npi_list)) {
+    big_npi_list[[i]] <- unique(big_npi_list[[i]])
+  }
+  
+  big_con_list <- list()
+  
+  for (h in 1:length(year)) {
+    con_list <- list()
+    for (i in 1:(length(month))) {
+      con_list[[i]] <- 0
+      names(con_list)[i] <- as.character(paste(year[h], month[i], sep = "-"))
+    }
+    big_con_list <- c(big_con_list, con_list)
+  }
+  
+  
+  #big_con_list is a list of Organization NPI that are consistent from previous month
+  
+  for (i in 2:length(big_npi_list)) {
+    big_con_list[[i]] <- big_npi_list[[i]][which((big_npi_list[[i]] %in% big_npi_list[[i-1]]) == "TRUE")]
+  }
+  
+  
+  data_ordered <- cbind(data_ordered, data.frame(QUARTER = quarter), data.frame(YEAR_MONTH = as.character(paste(data_ordered$PROCEDURE_YEAR, data_ordered$PROCEDURE_MONTH, sep ="-"))))
+  
+  
+  #count the number of consistent organization npi
+  big_con_npi_count_list <- list()
+  
+  for (h in 1:length(year)) {
+    npi_count_list <- list()
+    for (i in 1:(length(month))) {
+      npi_count_list[[i]] <- 0
+      names(npi_count_list)[i] <- as.character(paste(year[h], month[i], sep = "-"))
+    }
+    big_con_npi_count_list <- c(big_con_npi_count_list, npi_count_list)
+  }
+  
+  for (i in 2:length(big_npi_list)) {
+    big_con_npi_count_list[[i]] <- length(big_con_list[[i]])
+  }
+  
+  
+  consistent <- numeric(length(data_ordered$ORGANIZATION_NPI))
+  
+  for (i in 1:length(data_ordered$ORGANIZATION_NPI)) {
+    for (j in 1:length(big_con_list)) {
+      if ((as.character(data_ordered$YEAR_MONTH[i]) == names(big_con_list[j])) & (data_ordered$ORGANIZATION_NPI[i] %in% big_con_list[[j]])) {
+        consistent[i] <- 1;
+      }
+    }
+  }
+  
+  data_ordered <- cbind(data_ordered, data.frame(CONSISTENCY = consistent))
+  data_ordered_con <- sqldf("select * from data_ordered where consistency = 1")
+  
+  ######monthly growth#######
+  
+  
+  if (time == "Monthly") {
+    
+    
+    data_ordered_original_grouped_monthly <- sqldf("select count(patient_id) as PATIENT_ID_COUNT, PROCEDURE_MONTH, PROCEDURE_YEAR 
+                                                   from data_ordered 
+                                                   group by PROCEDURE_MONTH, PROCEDURE_YEAR 
+                                                   order by PROCEDURE_YEAR, PROCEDURE_MONTH")
+    
+    data_ordered_con_grouped_monthly <- sqldf("select count(patient_id) as PATIENT_ID_CONSISTENT_COUNT, PROCEDURE_MONTH, PROCEDURE_YEAR 
+                                              from data_ordered_con 
+                                              group by procedure_month, procedure_year 
+                                              order by procedure_year, procedure_month")
+    
+    Monthly_data <- arrange(merge(data_ordered_original_grouped_monthly, data_ordered_con_grouped_monthly, 
+                                  by = c("PROCEDURE_MONTH", "PROCEDURE_YEAR"), all = T, sort = F), 
+                            PROCEDURE_YEAR, PROCEDURE_MONTH)
+    
+    Monthly_data['PATIENT_ID_COUNT_GROWTH'] <- numeric(length(Monthly_data$PATIENT_ID_COUNT))
+    Monthly_data['PATIENT_ID_CONSISTENT_COUNT_GROWTH'] <- numeric(length(Monthly_data$PATIENT_ID_COUNT))
+    
+    
+    
+    for (i in 1:(nrow(Monthly_data)-1)) {
+      if (Monthly_data$PROCEDURE_MONTH[i] != 12 & (Monthly_data$PROCEDURE_MONTH[i+1] == (Monthly_data$PROCEDURE_MONTH[i] + 1))) {
+        Monthly_data$PATIENT_ID_COUNT_GROWTH[i+1] <- (((Monthly_data$PATIENT_ID_COUNT[i+1])/(Monthly_data$PATIENT_ID_COUNT[i])) - 1)*100
+        Monthly_data$PATIENT_ID_CONSISTENT_COUNT_GROWTH[i+1] <- (((Monthly_data$PATIENT_ID_CONSISTENT_COUNT[i+1])/(Monthly_data$PATIENT_ID_CONSISTENT_COUNT[i])) - 1)*100
+      }
+      else if (Monthly_data$PROCEDURE_MONTH[i] == 12 & Monthly_data$PROCEDURE_MONTH[i+1] == 1) {
+        Monthly_data$PATIENT_ID_COUNT_GROWTH[i+1] <- (((Monthly_data$PATIENT_ID_COUNT[i+1])/(Monthly_data$PATIENT_ID_COUNT[i])) - 1)*100
+        Monthly_data$PATIENT_ID_CONSISTENT_COUNT_GROWTH[i+1] <- (((Monthly_data$PATIENT_ID_CONSISTENT_COUNT[i+1])/(Monthly_data$PATIENT_ID_CONSISTENT_COUNT[i])) - 1)*100
+      }
+      else {
+        Monthly_data$PATIENT_ID_COUNT_GROWTH[i+1] <- 0
+        Monthly_data$PATIENT_ID_CONSISTENT_COUNT_GROWTH[i+1] <- 0
+      }
+    }
+    
+    Monthly_data[is.na(Monthly_data)] <- 0
+  }
+  
+  
+  ######quarterly growth#####
+  
+  
+  if (time == "Quarterly") {
+    
+    
+    data_ordered_original_grouped_quarter <- sqldf("select count(patient_id) as PATIENT_ID_COUNT, quarter, procedure_year 
+                                                   from data_ordered 
+                                                   group by quarter, procedure_year 
+                                                   order by procedure_year, quarter")
+    
+    data_ordered_con_grouped_quarter <- sqldf("select count(patient_id) as PATIENT_ID_CONSISTENT_COUNT, quarter, procedure_year 
+                                              from data_ordered_con 
+                                              group by quarter, procedure_year 
+                                              order by procedure_year, quarter")
+    
+    Quarter_data <- arrange(merge(data_ordered_original_grouped_quarter, data_ordered_con_grouped_quarter, 
+                                  by = c("QUARTER", "PROCEDURE_YEAR"), all = T, sort = F), 
+                            PROCEDURE_YEAR, QUARTER)
+    
+    Quarter_data['PATIENT_ID_COUNT_GROWTH'] <- numeric(length(Quarter_data$PATIENT_ID_COUNT))
+    Quarter_data['PATIENT_ID_CONSISTENT_COUNT_GROWTH'] <- numeric(length(Quarter_data$PATIENT_ID_COUNT))
+    
+    for (i in 1:(nrow(Quarter_data)-1)) {
+      if (as.numeric(Quarter_data$QUARTER[i]) == (as.numeric(Quarter_data$QUARTER[i+1]) - 1) |
+          as.numeric(Quarter_data$QUARTER[i]) == 4 & as.numeric(Quarter_data$QUARTER[i+1]) == 1) {
+        
+        Quarter_data$PATIENT_ID_COUNT_GROWTH[i+1] <- (((Quarter_data$PATIENT_ID_COUNT[i+1])/(Quarter_data$PATIENT_ID_COUNT[i])) - 1)*100
+        Quarter_data$PATIENT_ID_CONSISTENT_COUNT_GROWTH[i+1] <- (((Quarter_data$PATIENT_ID_CONSISTENT_COUNT[i+1])/(Quarter_data$PATIENT_ID_CONSISTENT_COUNT[i])) - 1)*100
+      }
+      else {
+        Quarter_data$PATIENT_ID_COUNT_GROWTH[i+1] <- 0
+        Quarter_data$PATIENT_ID_CONSISTENT_COUNT_GROWTH[i+1] <- 0
+      }
+    }
+    
+    Quarter_data[is.na(Quarter_data)] <- 0
+    
+    
+  }
+  
+  #####annual growth######
+  
+  if (time == "Annually") {
+    
+    
+    data_ordered_original_grouped_year <- sqldf("select count(patient_id) as PATIENT_ID_COUNT, procedure_year 
+                                                from data_ordered 
+                                                group by procedure_year 
+                                                order by procedure_year")
+    
+    data_ordered_con_grouped_year <- sqldf("select count(patient_id) as PATIENT_ID_CONSISTENT_COUNT, procedure_year 
+                                           from data_ordered_con 
+                                           group by procedure_year 
+                                           order by procedure_year")
+    
+    Year_data <- arrange(merge(data_ordered_original_grouped_year, data_ordered_con_grouped_year, 
+                               by = "PROCEDURE_YEAR", all = T), 
+                         PROCEDURE_YEAR)
+    
+    Year_data['PATIENT_ID_COUNT_GROWTH'] <- numeric(length(Year_data$PATIENT_ID_COUNT))
+    Year_data['PATIENT_ID_CONSISTENT_COUNT_GROWTH'] <- numeric(length(Year_data$PATIENT_ID_COUNT))
+    
+    for (i in 2:nrow(Year_data)) {
+      Year_data$PATIENT_ID_COUNT_GROWTH[i] <- (((Year_data$PATIENT_ID_COUNT[i])/(Year_data$PATIENT_ID_COUNT[i-1])) - 1)*100
+      Year_data$PATIENT_ID_CONSISTENT_COUNT_GROWTH[i] <- (((Year_data$PATIENT_ID_CONSISTENT_COUNT[i])/(Year_data$PATIENT_ID_CONSISTENT_COUNT[i-1])) - 1)*100
+    }
+    
+    
+    Year_data[is.na(Year_data)] <- 0
+    
+    
+  }
+  
+  if (time == "Annually") {
+    Year_data
+  }
+  else if (time == "Quarterly") {
+    Quarter_data
+  }
+  else {
+    Monthly_data
+  }
+}
+
+
+
+Get_NT <- function(gr_df, quarter_nt, year, quarter) {
+  
+  
+  gr_df['QUARTERLY_NT'] <- data.frame(rep(0, nrow(gr_df)))
+  gr_df$QUARTERLY_NT[which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter)] <- quarter_nt
+  
+  current_len <- which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter)
+  end_len <- nrow(gr_df) 
+  t <- 0
+  
+  while (current_len < nrow(gr_df)) {
+    gr_df$QUARTERLY_NT[current_len + 1] <- (gr_df$QUARTERLY_NT[which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter) + t])*
+      (1 + (gr_df$PATIENT_ID_COUNT_GROWTH[which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter) + t + 1])/100);
+    t <- t + 1;
+    current_len <- current_len + 1;
+  }
+  
+  current_len <- which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter)
+  
+  t <- 1
+  
+  while ((current_len - t) > 0) {
+    gr_df$QUARTERLY_NT[current_len - t] <- gr_df$QUARTERLY_NT[current_len - t + 1]/(1 + gr_df$PATIENT_ID_COUNT_GROWTH[current_len - t + 1]/100)
+    t <- t + 1;
+  }
+  
+  gr_df['ANNUAL_NT'] <- data.frame(rep(0, nrow(gr_df)))
+  
+  for (i in 1:nrow(gr_df)){
+    gr_df$ANNUAL_NT[max(which(gr_df$PROCEDURE_YEAR == gr_df$PROCEDURE_YEAR[i]))] <- sum(gr_df$QUARTERLY_NT[which(gr_df$PROCEDURE_YEAR == gr_df$PROCEDURE_YEAR[i])])
+  }
+  
+  
+  ##consistent##
+  
+  gr_df['CONSISTENT_QUARTERLY_NT'] <- data.frame(rep(0, nrow(gr_df)))
+  gr_df$CONSISTENT_QUARTERLY_NT[which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter)] <- quarter_nt
+  
+  current_len <- which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter)
+  end_len <- nrow(gr_df) 
+  t <- 0
+  
+  while (current_len < nrow(gr_df)) {
+    gr_df$CONSISTENT_QUARTERLY_NT[current_len + 1] <- (gr_df$CONSISTENT_QUARTERLY_NT[which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter) + t])*
+      (1 + (gr_df$PATIENT_ID_CONSISTENT_COUNT_GROWTH[which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter) + t + 1])/100);
+    t <- t + 1;
+    current_len <- current_len + 1;
+  }
+  
+  current_len <- which(gr_df$PROCEDURE_YEAR == year & gr_df$QUARTER == quarter)
+  
+  t <- 1
+  
+  while ((current_len - t) > 0) {
+    gr_df$CONSISTENT_QUARTERLY_NT[current_len - t] <- gr_df$CONSISTENT_QUARTERLY_NT[current_len - t + 1]/(1 + gr_df$PATIENT_ID_CONSISTENT_COUNT_GROWTH[current_len - t + 1]/100)
+    t <- t + 1;
+  }
+  
+  gr_df['CONSISTENT_ANNUAL_NT'] <- data.frame(rep(0, nrow(gr_df)))
+  
+  for (i in 1:nrow(gr_df)){
+    gr_df$CONSISTENT_ANNUAL_NT[max(which(gr_df$PROCEDURE_YEAR == gr_df$PROCEDURE_YEAR[i]))] <- sum(gr_df$CONSISTENT_QUARTERLY_NT[which(gr_df$PROCEDURE_YEAR == gr_df$PROCEDURE_YEAR[i])])
+  } 
+  
+  gr_df
+  
+}
+
+
+
+
+
+
+NT_Estimation <- function(vol_df, ratio_df, code = unique(vol_df$Code)) {
+  
+  falcon_data_grouped <- sqldf("select Code, Admit_year, Admit_month, PayerType, sum(count) as Sum_Count
+                               from ratio_df 
+                               group by PayerType, Admit_year, Admit_month, Code 
+                               order by Admit_year, Admit_month, Code")
+
+  falcon_data_grouped$Code <- stri_trim(falcon_data_grouped$Code)
+  vol_df$Code <- stri_trim(vol_df$Code)
+  
+  falcon_data_grouped <- falcon_data_grouped[which((falcon_data_grouped$PayerType != "NULL") & (falcon_data_grouped$PayerType != "OTHER")),]
+  
+  #remove special characters and values with incorrect length
+  
+  falcon_data_grouped$Code <- gsub("[^[:alnum:]]", "",falcon_data_grouped$Code)
+  
+  vol_df$Code <-  gsub("[^[:alnum:]]", "", vol_df$Code)
+
+  falcon_data_grouped['Quarter'] <- 0
+  
+  falcon_data_grouped$Quarter[which(falcon_data_grouped$Admit_month %in% c('1','2','3'))] <- 1
+  falcon_data_grouped$Quarter[which(falcon_data_grouped$Admit_month %in% c('4','5','6'))] <- 2
+  falcon_data_grouped$Quarter[which(falcon_data_grouped$Admit_month %in% c('7','8','9'))] <- 3
+  falcon_data_grouped$Quarter[which(falcon_data_grouped$Admit_month %in% c('10','11','12'))] <- 4
+
+  falcon_data_grouped['Code_Admit_Year_Quarter'] <- ""
+  
+  for (i in 1:nrow(falcon_data_grouped)) {
+    falcon_data_grouped$Code_Admit_Year_Quarter[i] <- paste(paste(as.character(falcon_data_grouped$Code[i]), as.character(falcon_data_grouped$Admit_year[i]), sep = "-"), as.character(falcon_data_grouped$Quarter[i]), sep = "-")
+  } 
+  
+  vol_df['Quarter'] <- 0
+  
+  vol_df$Quarter[which(vol_df$Month %in% c('1','2','3'))] <- 1
+  vol_df$Quarter[which(vol_df$Month %in% c('4','5','6'))] <- 2
+  vol_df$Quarter[which(vol_df$Month %in% c('7','8','9'))] <- 3
+  vol_df$Quarter[which(vol_df$Month %in% c('10','11','12'))] <- 4
+  
+  vol_df['Code_Admit_Year_Quarter'] <- ""
+ 
+  vol_df$Code_Admit_Year_Quarter <- paste(paste(as.character(vol_df$Code), as.character(vol_df$Year), sep = "-"), as.character(vol_df$Quarter), sep = "-")
+
+  vol_df  <- sqldf("select Code, Year,  Sum(Vol) as Sum_Count, Quarter, Code_Admit_Year_Quarter 
+                   from vol_df
+                   group by Code, Year, Quarter 
+                   order by Year, Quarter, Code")
+  
+  
+  falcon_data_grouped  <- sqldf("select Code, Admit_year, PayerType, Sum(Sum_Count) as Sum_Count, Quarter, Code_Admit_Year_Quarter 
+                                from falcon_data_grouped 
+                                group by Code, PayerType, Admit_year, Quarter 
+                                order by Admit_year, Quarter, Code")
+  
+  
+  falcon_data_grouped_sum <- sqldf("select Code_Admit_Year_Quarter, Sum(Sum_Count) as Total_Count, Code, Admit_year, Quarter
+                                   from falcon_data_grouped
+                                   group by Code_Admit_Year_Quarter
+                                   order by Admit_year, Quarter")
+  
+  falcon_data_grouped['Ratio'] <- 0
+  
+  for (i in 1:nrow(falcon_data_grouped)) {
+    falcon_data_grouped$Ratio[i] <- falcon_data_grouped$Sum_Count[i]/(falcon_data_grouped_sum$Total_Count[which(falcon_data_grouped$Code_Admit_Year_Quarter[i] == falcon_data_grouped_sum$Code_Admit_Year_Quarter)])
+  }
+  
+  vol_df['National_Total'] <- 0
+  
+  for (i in 1:nrow(vol_df)) {
+    if (length((falcon_data_grouped$Ratio[which(vol_df$Code_Admit_Year_Quarter[i] == falcon_data_grouped$Code_Admit_Year_Quarter & falcon_data_grouped$PayerType == "MEDICARE TRADITIONAL")])) > 0) {
+      vol_df$National_Total[i] <- vol_df$Sum_Count[i]/(falcon_data_grouped$Ratio[which(vol_df$Code_Admit_Year_Quarter[i] == falcon_data_grouped$Code_Admit_Year_Quarter & 
+                                                                                         falcon_data_grouped$PayerType == "MEDICARE TRADITIONAL")])
+    }
+  }
+  
+  vol_df['MEDICARE'] <- ""
+  
+  for (i in 1:nrow(vol_df)) {
+    vol_df$MEDICARE[i] <- paste(vol_df$Code_Admit_Year_Quarter[i], "MEDICARE TRADITIONAL", sep = "-")
+  }
+  
+  
+  falcon_data_grouped['MEDICARE'] <- ""
+  
+  for (i in 1:nrow(falcon_data_grouped)) {
+    if (falcon_data_grouped$PayerType[i] == "MEDICARE TRADITIONAL") {
+      falcon_data_grouped$MEDICARE[i] <- paste(falcon_data_grouped$Code_Admit_Year_Quarter[i], "MEDICARE TRADITIONAL", sep = "-")
+    }
+  }
+  
+  
+  falcon_data_grouped <- sqldf("select A.Code, A.Admit_year, A.Quarter, A.PayerType, A.Sum_Count, A.Code_Admit_Year_Quarter, A.Ratio, B.National_Total 
+                               from falcon_data_grouped A
+                               left join vol_df B
+                               on A.MEDICARE = B.MEDICARE and A.Code = B.Code")
+  
+  
+  code_y_q <- falcon_data_grouped$Code_Admit_Year_Quarter[which(!is.na(falcon_data_grouped$National_Total) == TRUE)]
+  
+  for (i in 1:length(code_y_q)) {
+    falcon_data_grouped$National_Total[which(falcon_data_grouped$Code_Admit_Year_Quarter == code_y_q[i])] <- ((falcon_data_grouped$National_Total[which(falcon_data_grouped$Code_Admit_Year_Quarter == code_y_q[i])][which(is.na(falcon_data_grouped$National_Total[which(falcon_data_grouped$Code_Admit_Year_Quarter == code_y_q[i])]) == FALSE)])*(falcon_data_grouped$Ratio[which(falcon_data_grouped$Code_Admit_Year_Quarter == code_y_q[i])]))
+  }
+  
+  falcon_data_grouped$National_Total[which(is.na(falcon_data_grouped$National_Total) == TRUE)] <- 0
+  
+  vol_df_nt <- vol_df[(vol_df$Code %in% code), ]
+  
+  falcon_data_grouped_nt <- falcon_data_grouped[(falcon_data_grouped$Code %in% code), ]
+  
+  if (length(code) < length(vol_df$Code)) {
+    sqldf("select Admit_year, Quarter, PayerType, sum(National_Total) as National_Total 
+          from falcon_data_grouped_nt 
+          where National_Total > 0
+          group by PayerType, Quarter, Admit_year
+          order by Admit_year, Quarter")
+  }
+  else {
+    falcon_data_grouped
+  }
+} 
+
+
+
