@@ -1,0 +1,165 @@
+library(plyr)
+library(reshape)
+library(readxl)
+
+
+#returns a table with counts of ICDs, ICD codes, proportions, and ICD code names 
+
+find_freq <- function(file) {
+  #pivot table
+  df2 <- cast(file, CLAIM_NO ~ ICD_PRCDR_CD)	
+  #remove NAs in pivot table
+  df2[is.na(df2) =="TRUE"] <- 0											         
+  
+  freq_num <- numeric(length(df2$CLAIM_NO))
+  n <- 1
+  
+  freq <- numeric(length(df2$CLAIM_NO))
+			
+  #freq is a set consisting of the counts by rows
+  for (i in 1:length(df2$CLAIM_NO)) {										      
+    n <- 1
+    for (j in 2:length(colnames(df2))) {
+      if (df2[i,j] > 0) {
+        freq[i] <- freq[i] + n;
+      }
+    }
+  }
+  
+  df2["freq"] <- freq
+  
+  #add a row of totals
+  df2[length(rownames(df2))+1,1] <- "Total"									  
+  
+  #sum up all columns
+  for (j in 2:length(colnames(df2))) {										    
+    df2[length(rownames(df2)), j] <- sum(df2[1:(length(rownames(df2))-1),j]);
+  }
+  
+  #remove first col and freq col																                            
+  df3 <- df2[1:(length(rownames(df2))), 2:(length(colnames(df2))-1)]
+  
+  #ordered dataframe by totals (DESC)
+  df3_ordered <- df3[1:length(rownames(df3)), order(colSums(-df3[1:length(rownames(df3)),]))]	
+  
+  
+  proc_name <- colnames(df3_ordered) 
+  
+  #list of certain combinations of ICDs																                            
+  combi <- list()
+  combi[1][[1]] <- proc_name[1]
+  n <- 2
+  for (i in 2: length(proc_name)) {
+    
+    combi[[i]] <- proc_name[1];
+    combi[[i]][2] <- proc_name[n];
+    n <- n + 1;
+  }
+  
+  
+  count1 <- 0
+  
+  #finds the count of the first column																
+  for (i in 1:(length(rownames(df3_ordered))-1)) {						
+    if (df3_ordered[i,1] >= 1 && sum(df3_ordered[i,2:length(colnames(df3_ordered))]) == 0 ) {
+      count1 <- count1 + 1;
+    }
+  }
+  
+  #find counts for all other columns
+  count_total <- numeric(length(combi))										    
+  count_total[1] <- count1
+  
+  for (t in 2:length(combi)) {
+    for (i in 1:(length(rownames(df3_ordered))-1)) {
+      if (df3_ordered[i, combi[[t]][1]] > 0 && df3_ordered[i, combi[[t]][2]] > 0 &&
+          sum(df3_ordered[i,]) == (sum(df3_ordered[i, combi[[t]][1]]) + 
+                                   sum(df3_ordered[i, combi[[t]][2]]))) {
+        count_total[t] <-  count_total[t] + 1
+      }
+    }
+  }
+  
+  #creates ICD column with ICD codes based on list above
+  ICDs <- paste(combi[[1]])												            
+  
+  for (t in 2:length(combi)) {
+    ICDs[t] <-  paste(combi[[t]][1], combi[[t]][2], sep = " and ")
+  }
+  
+  results <- data.frame(count_total, ICDs)
+  
+  #creates proportion column
+  results["proportion"] <- 0												          
+  
+  for (i in 1:length(results$count_total)){
+    
+    results$proportion[i] <- (results$count_total[i]/(sum(results$count_total)))*100 
+  }
+  
+  results <- rbind(results, c(sum(results$count_total), "", sum(results$proportion)))		
+  results <- rbind(results, c(length(df2$CLAIM_NO)-1, "", ""))
+  
+  rownames(results)[length(results$count_total)-1] <- "TOTAL"
+  rownames(results)[length(results$count_total)] <- "TOTAL Claims"
+  
+  
+  code_list <- c(
+  "037L3DZ-Left Internal" 
+  ,"037K3DZ-Right Internal"
+  ,"037N3DZ-Left External"
+  ,"037M3DZ-Right External"
+  ,"037J3DZ-Left Common" 
+  ,"037H3DZ-Right Common" 
+  ,"037L34Z-Left Internal Drug-eluting" 
+  ,"037K34Z-Right Internal Drug-eluting" 
+  ,"037L3D6-Left Internal Bifurcation"
+  ,"037K3D6-Right Internal Bifurcation"
+  ,"037J3D6-Left Common Bifurcation"
+  ,"037H3D6-Right Common Bifurcation" 
+  ,"037J3EZ-Left Common Two Intraluminal"
+  ,"037J35Z-Left Common Two Drug-eluting"
+  ,"037J34Z-Left Common Drug-eluting" 
+  ,"037H34Z-Right Common Drug-eluting"
+  ,"037H3EZ-Right Common Two Intraluminal")
+
+
+
+  code_name <- as.character()
+											            
+  #assign code name to first ICD code
+  for (i in 1:length(code_list)) {
+    if (as.character(results$ICDs[1]) == substring(code_list[i], 1,7)) {
+      code_name[1] <- substring(code_list[i], 9)
+    }
+  }
+  
+  n <- 2
+  
+  #code names for all other ICD codes
+  for (t in 2:length(combi)) {										            
+    for (j in 1: length(code_list)) {
+      if (combi[[t]][2] == substring(code_list[j], 1,7)) {
+        code_name[n] <- paste(code_name[1], substring(code_list[j],9), sep = " + ");
+        n <- n + 1
+      }
+    }
+  }
+  
+  results[1:length(code_name),4] <- code_name; colnames(results)[4] <- "code_name";
+
+  results
+  
+}
+  
+  
+  
+  
+  
+
+
+
+
+
+
+
