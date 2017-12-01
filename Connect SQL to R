@@ -1,0 +1,7 @@
+install.packages("RODBC")
+library(RODBC)
+
+data <- odbcDriverConnect(connection="Driver={SQL Server Native Client 11.0};server=Boudevsql5;trusted_connection=yes;")
+
+Boudevsql5 <- sqlQuery(Boudevsql5, "select * from Falcon.dbo.PayersMapping")
+
