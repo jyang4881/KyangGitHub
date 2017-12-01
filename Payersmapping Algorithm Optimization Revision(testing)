@@ -1,0 +1,200 @@
+#install.packages("RODBC")
+library(RODBC)
+
+Boudevsql5 <- odbcDriverConnect(connection="Driver={SQL Server Native Client 11.0};server=Boudevsql5;trusted_connection=yes;")
+
+payersmapping <- sqlQuery(Boudevsql5, "select * from Falcon.dbo.PayersMapping_20172711")
+
+
+payertype_non_null <- sqlQuery(Boudevsql5, "select * 
+                               from Falcon.dbo.PayersMapping_20172711
+                               where not(PayerType = 'NULL')")
+
+payertype_null <- sqlQuery(Boudevsql5, "select * 
+                           from Falcon.dbo.PayersMapping_20172711
+                           where (PayerType ='NULL')")
+
+
+payertype_null$ins_plan_desc <- as.character(payertype_null$ins_plan_desc)
+payertype_null$ins_plan_desc[is.na(payertype_null$ins_plan_desc)] <- ""
+
+payertype_null$payer_desc <- as.character(payertype_null$payer_desc)
+payertype_null$payer_desc[is.na(payertype_null$payer_desc)] <- ""
+
+payertype_non_null$ins_plan_desc <- as.character(payertype_non_null$ins_plan_desc)
+payertype_non_null$ins_plan_desc[is.na(payertype_non_null$ins_plan_desc)] <- ""
+
+payertype_non_null$payer_desc <- as.character(payertype_non_null$payer_desc)
+payertype_non_null$payer_desc[is.na(payertype_non_null$payer_desc)] <- ""
+
+payertype_null['distinct_payers_ins_desc'] <- tolower(paste(payertype_null$payer_desc, payertype_null$ins_plan_desc, sep = " "))
+payertype_non_null['distinct_payers_ins_desc'] <- tolower(paste(payertype_non_null$payer_desc, payertype_non_null$ins_plan_desc, sep = " "))
+
+Payertype_chip <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "chip"),]
+Payertype_veterans <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "veterans"),]
+Payertype_selfpay <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "self pay"),]
+Payertype_othergovernment <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "other government"),]
+Payertype_medicaretraditional <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "medicare traditional"),]
+Payertype_medicaid <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "medicaid"),]
+Payertype_medicareadvantage <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "medicare advantage"),]
+Payertype_unknown <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "unknown"),]
+Payertype_other <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "other"),]
+Payertype_private <- payertype_non_null[which(tolower(payertype_non_null$PayerType) == "private"),]
+
+
+clean_payertype_words <- function(Payertype) {
+  
+  #convert to lower case descriptions with only alphabet characters
+  vec1 <- gsub("[^[:alpha:]]", " ", tolower(Payertype$distinct_payers_ins_desc))
+  
+  #split into separate words
+  vec2 <- strsplit(vec1, " ")
+  
+  #convert list of words into a vector
+  vec3 <- unlist(vec2)
+  
+  #remove anything of length less than 3
+  vec4 <- vec3[which(nchar(vec3) > 2)]
+  
+  #keep only unique words
+  vec5 <- unique(vec4)
+  
+}	
+
+chip_words <- clean_payertype_words(Payertype_chip)
+veterans_words <- clean_payertype_words(Payertype_veterans)
+selfpay_words <- clean_payertype_words(Payertype_selfpay)
+othergovernment_words <- clean_payertype_words(Payertype_othergovernment)
+medicaretraditional_words <- clean_payertype_words(Payertype_medicaretraditional)
+medicaid_words <- clean_payertype_words(Payertype_medicaid)
+medicareadvantage_words <- clean_payertype_words(Payertype_medicareadvantage)
+unknown_words <- clean_payertype_words(Payertype_unknown)
+other_words <- clean_payertype_words(Payertype_other)  
+private_words <- clean_payertype_words(Payertype_private)
+
+chip_words2 <- chip_words[which(!(chip_words %in% c("veterans", "selfpay", "government", "medicare", "medicaid", "traditional", "advantage")))]
+veterans_words2 <- veterans_words[which(!(veterans_words %in% c("chip", "selfpay", "government", "medicare", "medicaid", "traditional", "advantage")))]
+selfpay_words2 <- selfpay_words[which(!(selfpay_words %in% c("chip", "veterans", "government", "medicare", "medicaid", "traditional", "advantage")))]
+othergovernment_words2 <- othergovernment_words[which(!(othergovernment_words %in% c("chip", "veterans", "selfpay", "medicare", "medicaid", "traditional", "advantage")))]
+medicaretraditional_words2 <- medicaretraditional_words[which(!(medicaretraditional_words %in% c("chip", "veterans", "selfpay", "government", "medicaid", "advantage")))]
+medicaid_words2 <- medicaid_words[which(!(medicaid_words %in% c("chip", "veterans", "selfpay", "government", "medicare", "traditional", "advantage")))]
+medicareadvantage_words2 <- medicareadvantage_words[which(!(medicareadvantage_words %in% c("chip", "veterans", "selfpay", "government", "traditional")))]
+unknown_words2 <- unknown_words[which(!(unknown_words %in% c("chip", "veterans", "selfpay", "government", "medicare","traditional", "medicaid", "advantage")))]
+other_words2 <- other_words[which(!(other_words %in% c("chip", "veterans", "selfpay", "government", "medicare","traditional", "medicaid", "advantage")))]
+private_words2 <- private_words[which(!(private_words %in% c("chip", "veterans", "selfpay", "government", "medicare","traditional", "medicaid", "advantage")))]
+
+payertype_null_1 <- gsub("[^[:alpha:]]", " ", tolower(payertype_null$distinct_payers_ins_desc))
+payertype_null_2 <- strsplit(payertype_null_1, " ")
+
+
+for (i in 1:length(payertype_null_2)) {
+  payertype_null_2[[i]] <- payertype_null_2[[i]][which(nchar(payertype_null_2[[i]]) > 2)]
+}
+
+count <- list()
+count[1:length(payertype_null_2)] <- 0
+
+len_payertype_null <- as.numeric()
+payertype <- rep("", length(payertype_null_2))
+len_chip <- as.numeric()
+len_veterans <- as.numeric()
+len_selfpay <- as.numeric()
+len_othergovernment <- as.numeric()
+len_medicaretraditional <- as.numeric()
+len_medicaid <- as.numeric()
+len_medicareadvantage <-  as.numeric()
+len_unknown <- as.numeric()
+len_other <-  as.numeric()
+len_private <- as.numeric()
+
+len_chip_else <- as.numeric()
+len_veterans_else <- as.numeric()
+len_selfpay_else <- as.numeric()
+len_othergovernment_else <- as.numeric()
+len_medicaretraditional_else <- as.numeric()
+len_medicaid_else <- as.numeric()
+len_medicareadvantage_else <-  as.numeric()
+len_unknown_else <- as.numeric()
+len_other_else <-  as.numeric()
+len_private_else <- as.numeric()
+
+
+clean_payertype_words_freq <- function(Payertype) {
+  
+  #convert to lower case descriptions with only alphabet characters
+  vec1 <- gsub("[^[:alpha:]]", " ", tolower(Payertype$distinct_payers_ins_desc))
+  
+  #split into separate words
+  vec2 <- strsplit(vec1, " ")
+  
+  #convert list of words into a vector
+  vec3 <- unlist(vec2)
+  
+  #remove anything of length less than 1
+  vec4 <- vec3[which(nchar(vec3) > 1)]
+  
+}	
+
+chip_words_freq <- clean_payertype_words_freq(Payertype_chip)
+veterans_words_freq <- clean_payertype_words_freq(Payertype_veterans)
+selfpay_words_freq <- clean_payertype_words_freq(Payertype_selfpay)
+othergovernment_words_freq <- clean_payertype_words_freq(Payertype_othergovernment)
+medicaretraditional_words_freq <- clean_payertype_words_freq(Payertype_medicaretraditional)
+medicaid_words_freq <- clean_payertype_words_freq(Payertype_medicaid)
+medicareadvantage_words_freq <- clean_payertype_words_freq(Payertype_medicareadvantage)
+unknown_words_freq <- clean_payertype_words_freq(Payertype_unknown)
+other_words_freq <- clean_payertype_words_freq(Payertype_other)  
+private_words_freq <- clean_payertype_words_freq(Payertype_private)
+
+
+for (i in 1:length(payertype_null_2)) {
+  len_payertype_null[i] <- length(payertype_null_2[[i]])
+  len_chip[i] <- length(which((payertype_null_2[[i]]  %in% chip_words2) == TRUE))
+  len_veterans[i] <- length(which((payertype_null_2[[i]]  %in% veterans_words2) == TRUE))
+  len_selfpay[i] <- length(which((payertype_null_2[[i]]  %in% selfpay_words2) == TRUE))
+  len_othergovernment[i] <- length(which((payertype_null_2[[i]]  %in% othergovernment_words2) == TRUE))
+  len_medicaretraditional[i] <- length(which((payertype_null_2[[i]]  %in% medicaretraditional_words2) == TRUE))
+  len_medicaid[i] <- length(which((payertype_null_2[[i]]  %in% medicaid_words2) == TRUE))
+  len_medicareadvantage[i] <-  length(which((payertype_null_2[[i]]  %in% medicareadvantage_words2) == TRUE))  
+  len_unknown[i] <- length(which((payertype_null_2[[i]]  %in% unknown_words2) == TRUE))
+  len_other[i] <-  length(which((payertype_null_2[[i]]  %in% other_words2) == TRUE))
+  len_private[i] <- length(which((payertype_null_2[[i]]  %in% private_words2) == TRUE))
+  
+  len_chip_else[i] <- length(chip_words_freq[which(chip_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(chip_words_freq)
+  len_veterans_else[i] <- length(veterans_words_freq[which(veterans_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(veterans_words_freq)
+  len_selfpay_else[i] <- length(selfpay_words_freq[which(selfpay_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(selfpay_words_freq)
+  len_othergovernment_else[i] <- length(othergovernment_words_freq[which(othergovernment_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(othergovernment_words_freq)
+  len_medicaretraditional_else[i] <- length(medicaretraditional_words_freq[which(medicaretraditional_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(medicaretraditional_words_freq)
+  len_medicaid_else[i] <- length(medicaid_words_freq[which(medicaid_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(medicaid_words_freq)
+  len_medicareadvantage_else[i] <-  length(medicareadvantage_words_freq[which(medicareadvantage_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(medicareadvantage_words_freq)
+  len_unknown_else[i] <- length(unknown_words_freq[which(unknown_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(unknown_words_freq)
+  len_other_else[i] <-  length(other_words_freq[which(other_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(other_words_freq)
+  len_private_else[i] <- length(private_words_freq[which(private_words_freq %in% payertype_null_2[[i]] == TRUE)])/length(private_words_freq)
+}
+
+len_all <- data.frame(CHIP = len_chip, Veterans = len_veterans, Self_Pay = len_selfpay, Other_Government = len_othergovernment, 
+                      Medicare_Traditional = len_medicaretraditional, Medicaid = len_medicaid, Medicare_Advantage = len_medicareadvantage,
+                      Unknown = len_unknown, Other = len_other, Private = len_private, CHIP2 = len_chip_else, Veterans2 = len_veterans_else, 
+                      Self_Pay2 = len_selfpay_else, Other_Government2 = len_othergovernment_else, Medicare_Traditional2 = len_medicaretraditional_else, 
+                      Medicaid2 = len_medicaid_else, Medicare_Advantage2 = len_medicareadvantage_else, Unknown2 = len_unknown_else, 
+                      Other2 = len_other_else, Private2 = len_private_else, Len_payertype_null = len_payertype_null, 
+                      Payertype = payertype, Payers_ins_desc = payertype_null$distinct_payers_ins_desc)
+
+len_all$Payertype <- as.character(len_all$Payertype)
+
+for (i in 1:nrow(len_all)) {
+  #only one maximum match
+  if (length(which(len_all[i,1:10] == max(len_all[i,1:10]))) == 1) {
+    #length of maximum match is equal to length of null description
+    if ( ((max(len_all[i,1:10]) == len_all$Len_payertype_null[i]) | 
+          ((max(len_all[i,1:10])/len_all$Len_payertype_null[i]) >= 0.8)) & 
+         max(len_all[i,1:10]) != 0 ) {
+      len_all$Payertype[i] <- colnames(len_all)[which(len_all[i,1:10] == max(len_all[i,1:10]))]
+    }
+  }
+  #more than one maxmium match
+  else {
+    payertype_name <- colnames(len_all[i,which(len_all[i,1:10] == max(len_all[i,1:10]))+10])[which(len_all[i,which(len_all[i,1:10] == max(len_all[i,1:10]))+10] == max(len_all[i,which(len_all[i,1:10] == max(len_all[i,1:10]))+10]))]
+    len_all$Payertype[i] <- substr(colnames(len_all[i, which(len_all[i,1:10] == max(len_all[i,1:10]))+10])[which(len_all[i, which(len_all[i,1:10] == max(len_all[i,1:10]))+10] == max(len_all[i, which(len_all[i,1:10] == max(len_all[i,1:10]))+10]))],1, (nchar(payertype_name) -1))
+  }
+}
