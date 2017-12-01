@@ -1,0 +1,1033 @@
+CREATE or replace TABLE SANDBOX.PROCEDURE_endoky AS
+select 
+CLAIM_NUMBER,
+ENCRYPTED_KEY_1,
+ENCRYPTED_KEY_2,
+PROCEDURE_TYPE,
+PROCEDURE AS PROCEDURE_CODE,
+PROCEDURE_SEQUENCE,
+STATEMENT_FROM,
+STATEMENT_TO,
+SERVICE_FROM,
+SERVICE_TO,
+coalesce (SERVICE_FROM, STATEMENT_FROM) as claim_date,
+PLACE_SERVICE,
+PROCEDURE_MODIFIER_1,
+PROCEDURE_MODIFIER_2,
+PROCEDURE_MODIFIER_3,
+PROCEDURE_MODIFIER_4,
+LINE_CHARGE
+from sandbox.Claims_submits_procedure 
+where PROCEDURE in (
+--39.72--
+'03LG0DZ','03LG3DZ','03LG4DZ','03LH0DZ','03LH3DZ','03LH4DZ','03LJ0DZ','03LJ3DZ','03LJ4DZ','03LK0DZ'
+,'03LK3DZ','03LK4DZ','03LL0DZ','03LL3DZ','03LL4DZ','03LM0DZ','03LM3DZ','03LM4DZ','03LN0DZ','03LN3DZ'
+,'03LN4DZ','03LP0DZ','03LP3DZ','03LP4DZ','03LQ0DZ','03LQ3DZ','03LQ4DZ','03LR0DZ','03LR3DZ','03LR4DZ'
+,'03LS0DZ','03LS3DZ','03LS4DZ','03LT0DZ','03LT3DZ','03LT4DZ','03VG0DZ','03VG3DZ','03VG4DZ','03VH0DZ'
+,'03VH3DZ','03VH4DZ','03VJ0DZ','03VJ3DZ','03VJ4DZ','03VK0DZ','03VK3DZ','03VK4DZ','03VL0DZ','03VL3DZ'
+,'03VL4DZ','03VM0DZ','03VM3DZ','03VM4DZ','03VN0DZ','03VN3DZ','03VN4DZ','03VP0DZ','03VP3DZ','03VP4DZ'
+,'03VQ0DZ','03VQ3DZ','03VQ4DZ','03VR0DZ','03VR3DZ','03VR4DZ','03VS0DZ','03VS3DZ','03VS4DZ','03VT0DZ'
+,'03VT3DZ','03VT4DZ','03VU0DZ','03VU3DZ','03VU4DZ','03VV0DZ','03VV3DZ','03VV4DZ','3972',
+--39.75--
+'03LG0DZ','03LG3DZ','03LG4DZ','03LH0DZ','03LH3DZ','03LH4DZ','03LJ0DZ','03LJ3DZ','03LJ4DZ','03LK0DZ'
+,'03LK3DZ','03LK4DZ','03LL0DZ','03LL3DZ','03LL4DZ','03LM0DZ','03LM3DZ','03LM4DZ','03LN0DZ','03LN3DZ'
+,'03LN4DZ','03LP0DZ','03LP3DZ','03LP4DZ','03LQ0DZ','03LQ3DZ','03LQ4DZ','03VG0DZ','03VG3DZ','03VG4DZ'
+,'03VH0DZ','03VH3DZ','03VH4DZ','03VJ0DZ','03VJ3DZ','03VJ4DZ','03VK0DZ','03VK3DZ','03VK4DZ','03VL0DZ'
+,'03VL3DZ','03VL4DZ','03VM0DZ','03VM3DZ','03VM4DZ','03VN0DZ','03VN3DZ','03VN4DZ','03VP0DZ','03VP3DZ'
+,'03VP4DZ','03VQ0DZ','03VQ3DZ','03VQ4DZ','03VR0DZ','03VR3DZ','03VR4DZ','03VS0DZ','03VS3DZ','03VS4DZ'
+,'03VT0DZ','03VT3DZ','03VT4DZ','03VU0DZ','03VU3DZ','03VU4DZ','03VV0DZ','03VV3DZ','03VV4DZ','3975',
+--39.76--
+'03LG0BZ','03LG3BZ','03LG4BZ','03LH0BZ','03LH3BZ','03LH4BZ','03LJ0BZ','03LJ3BZ','03LJ4BZ','03LK0BZ'
+,'03LK3BZ','03LK4BZ','03LL0BZ','03LL3BZ','03LL4BZ','03LM0BZ','03LM3BZ','03LM4BZ','03LN0BZ','03LN3BZ'
+,'03LN4BZ','03LP0BZ','03LP3BZ','03LP4BZ','03LQ0BZ','03LQ3BZ','03LQ4BZ','03VG0BZ','03VG3BZ','03VG4BZ'
+,'03VH0BZ','03VH3BZ','03VH4BZ','03VJ0BZ','03VJ3BZ','03VJ4BZ','03VK0BZ','03VK3BZ','03VK4BZ','03VL0BZ'
+,'03VL3BZ','03VL4BZ','03VM0BZ','03VM3BZ','03VM4BZ','03VN0BZ','03VN3BZ','03VN4BZ','03VP0BZ','03VP3BZ'
+,'03VP4BZ','03VQ0BZ','03VQ3BZ','03VQ4BZ','3976') ;
+
+
+
+CREATE or replace TABLE SANDBOX.HEADER_endoky AS
+SELECT DISTINCT
+  H.CLAIM_NUMBER as CLAIM_NUMBER_H ,
+  H.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_H ,
+  H.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_H,
+  H.RECEIVED_DATE,	
+  H.CLAIM_TYPE_CODE,
+  H.TOTAL_CHARGE,
+  H.DRG_CODE,
+  H.TYPE_BILL,
+  H.ADMISSION_DATE,
+  H.ADMIT_TYPE_CODE,
+  P.CLAIM_NUMBER as CLAIM_NUMBER_P,
+  P.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_P,
+  P.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_P,
+  P.PROCEDURE_TYPE,
+  P.PROCEDURE_CODE,
+  P.PROCEDURE_SEQUENCE,
+  P.STATEMENT_FROM,
+  P.STATEMENT_TO,
+  P.SERVICE_FROM,
+  P.SERVICE_TO,
+  P.claim_date,
+  P.PLACE_SERVICE,
+  P.PROCEDURE_MODIFIER_1,
+  P.PROCEDURE_MODIFIER_2,
+  P.PROCEDURE_MODIFIER_3,
+  P.PROCEDURE_MODIFIER_4,
+  P.LINE_CHARGE,
+  coalesce (P.claim_date, H.RECEIVED_DATE) as Procedure_date
+FROM SANDBOX.PROCEDURE_endoky P
+left JOIN sandbox.Claims_submits_HEADER H
+ON H.CLAIM_NUMBER=P.CLAIM_NUMBER;
+
+
+
+alter table SANDBOX.HEADER_endoky
+add column PLACE_SERVICE_MODIFIED varchar;
+
+update SANDBOX.HEADER_endoky
+set PLACE_SERVICE_MODIFIED =  
+    case when CLAIM_NUMBER_H ilike 'vul%' and (PLACE_SERVICE is null or PLACE_SERVICE = 'NULL') 
+    then left(TYPE_BILL,2) else Place_service 
+    end;
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_endoky AS
+SELECT distinct H.*,
+CONCAT(PA.ENCRYPTED_KEY_1,nvl(PA.ENCRYPTED_KEY_2,'')) AS PATIENT_ID
+FROM sandbox.Claims_submits_PATIENT PA
+JOIN SANDBOX.HEADER_endoky H
+ON PA.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_14_17_endoky AS
+select P.*,
+       day(claim_date) as claim_day,
+       month(claim_date) as claim_month, 
+       year(claim_date) as claim_year, 
+       day(procedure_date) as procedure_day,
+       month(procedure_date) as procedure_month, 
+       year(procedure_date) as procedure_year
+from SANDBOX.PATIENT_endoky P
+where procedure_year in ('2012','2013','2014','2015','2016','2017');         
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PROVIDER_14_17_endoky AS
+SELECT distinct H.*,
+PR.PROVIDER_NPI,
+PR.OTHER_PROVIDER_ID,
+PR.PROVIDER_TYPE, 
+PR.CLAIM_SOURCE_SPECIALTY_TAXONOMY
+FROM sandbox.PATIENT_14_17_endoky H
+LEFT JOIN sandbox.Claims_submits_PROVIDER PR
+ON PR.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+create or replace table SANDBOX.PAYER_endoky as 
+select distinct A.*,
+                B.ORGANIZATION_NPI,
+                B.ORGANIZATION_LABEL
+from SANDBOX.PROVIDER_14_17_endoky A
+left join sandbox.claims_submits_facility_master_new B
+on A.claim_number_H = B.claim_number
+left join sandbox.claims_submits_facility_master C
+on A.claim_number_H = C.claim_number; 
+
+
+
+create or replace table SANDBOX.ENDO_Finalky1 as
+WITH kytable1
+AS
+(
+   SELECT A.*,
+     ROW_NUMBER() OVER(PARTITION BY patient_id, procedure_day, procedure_month, procedure_year
+                       ORDER BY patient_id, procedure_day, procedure_month, procedure_year DESC) AS RN
+   FROM SANDBOX.PAYER_endoky as A
+)
+SELECT claim_number_h, procedure_code, procedure_day, procedure_month, procedure_year, patient_id, provider_npi, provider_type, organization_npi, organization_label, rn
+FROM kytable1 WHERE organization_label = 'hospital' and RN = 1; 
+
+
+
+
+------------------------------------------
+
+
+CREATE or replace TABLE SANDBOX.PROCEDURE_clipsky AS
+select 
+CLAIM_NUMBER,
+ENCRYPTED_KEY_1,
+ENCRYPTED_KEY_2,
+PROCEDURE_TYPE,
+PROCEDURE AS PROCEDURE_CODE,
+PROCEDURE_SEQUENCE,
+STATEMENT_FROM,
+STATEMENT_TO,
+SERVICE_FROM,
+SERVICE_TO,
+coalesce (SERVICE_FROM, STATEMENT_FROM) as claim_date,
+PLACE_SERVICE,
+PROCEDURE_MODIFIER_1,
+PROCEDURE_MODIFIER_2,
+PROCEDURE_MODIFIER_3,
+PROCEDURE_MODIFIER_4,
+LINE_CHARGE
+from sandbox.Claims_submits_procedure 
+where PROCEDURE IN ('03VG0CZ', '03VG3CZ', '03VG4CZ','3951') ;
+
+
+
+CREATE or replace TABLE SANDBOX.HEADER_clipsky AS
+SELECT DISTINCT
+  H.CLAIM_NUMBER as CLAIM_NUMBER_H ,
+  H.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_H ,
+  H.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_H,
+  H.RECEIVED_DATE,	
+  H.CLAIM_TYPE_CODE,
+  H.TOTAL_CHARGE,
+  H.DRG_CODE,
+  H.TYPE_BILL,
+  H.ADMISSION_DATE,
+  H.ADMIT_TYPE_CODE,
+  P.CLAIM_NUMBER as CLAIM_NUMBER_P,
+  P.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_P,
+  P.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_P,
+  P.PROCEDURE_TYPE,
+  P.PROCEDURE_CODE,
+  P.PROCEDURE_SEQUENCE,
+  P.STATEMENT_FROM,
+  P.STATEMENT_TO,
+  P.SERVICE_FROM,
+  P.SERVICE_TO,
+  P.claim_date,
+  P.PLACE_SERVICE,
+  P.PROCEDURE_MODIFIER_1,
+  P.PROCEDURE_MODIFIER_2,
+  P.PROCEDURE_MODIFIER_3,
+  P.PROCEDURE_MODIFIER_4,
+  P.LINE_CHARGE,
+  coalesce (P.claim_date, H.RECEIVED_DATE) as Procedure_date
+FROM SANDBOX.PROCEDURE_clipsky P
+left JOIN sandbox.Claims_submits_HEADER H
+ON H.CLAIM_NUMBER=P.CLAIM_NUMBER;
+
+
+
+alter table SANDBOX.HEADER_clipsky
+add column PLACE_SERVICE_MODIFIED varchar;
+
+update SANDBOX.HEADER_clipsky
+set PLACE_SERVICE_MODIFIED =  
+    case when CLAIM_NUMBER_H ilike 'vul%' and (PLACE_SERVICE is null or PLACE_SERVICE = 'NULL') 
+    then left(TYPE_BILL,2) else Place_service 
+    end;
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_clipsky AS
+SELECT distinct H.*,
+CONCAT(PA.ENCRYPTED_KEY_1,nvl(PA.ENCRYPTED_KEY_2,'')) AS PATIENT_ID
+FROM sandbox.Claims_submits_PATIENT PA
+JOIN SANDBOX.HEADER_clipsky H
+ON PA.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_14_17_clipsky AS
+select P.*,
+       day(claim_date) as claim_day,
+       month(claim_date) as claim_month, 
+       year(claim_date) as claim_year, 
+       day(procedure_date) as procedure_day,
+       month(procedure_date) as procedure_month, 
+       year(procedure_date) as procedure_year
+from SANDBOX.PATIENT_clipsky P
+where procedure_year in ('2012','2013','2014','2015','2016','2017');         
+
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PROVIDER_14_17_clipsky AS
+SELECT distinct H.*,
+PR.PROVIDER_NPI,
+PR.OTHER_PROVIDER_ID,
+PR.PROVIDER_TYPE, 
+PR.CLAIM_SOURCE_SPECIALTY_TAXONOMY
+FROM sandbox.PATIENT_14_17_clipsky H
+LEFT JOIN sandbox.Claims_submits_PROVIDER PR
+ON PR.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+
+create or replace table SANDBOX.PAYER_clipsky as 
+select distinct A.*,
+                B.ORGANIZATION_NPI,
+                B.ORGANIZATION_LABEL
+from SANDBOX.PROVIDER_14_17_clipsky A
+left join sandbox.claims_submits_facility_master_new B
+on A.claim_number_H = B.claim_number
+left join sandbox.claims_submits_facility_master C
+on A.claim_number_H = C.claim_number; 
+
+
+
+
+
+create or replace table SANDBOX.clips_Finalky1 as
+WITH kytable1
+AS
+(
+   SELECT A.*,
+     ROW_NUMBER() OVER(PARTITION BY patient_id, procedure_day, procedure_month, procedure_year
+                       ORDER BY patient_id, procedure_day, procedure_month, procedure_year DESC) AS RN
+   FROM SANDBOX.PAYER_clipsky as A
+)
+SELECT claim_number_h, procedure_code, procedure_day, procedure_month, procedure_year, patient_id, provider_npi, 
+
+provider_type, organization_npi, organization_label, rn
+FROM kytable1 WHERE organization_label = 'hospital' and RN = 1; 
+
+
+
+
+
+------------------------------------------
+
+
+
+
+CREATE or replace TABLE SANDBOX.PROCEDURE_aneurysmky AS
+select 
+CLAIM_NUMBER,
+ENCRYPTED_KEY_1,
+ENCRYPTED_KEY_2,
+PROCEDURE_TYPE,
+PROCEDURE AS PROCEDURE_CODE,
+PROCEDURE_SEQUENCE,
+STATEMENT_FROM,
+STATEMENT_TO,
+SERVICE_FROM,
+SERVICE_TO,
+coalesce (SERVICE_FROM, STATEMENT_FROM) as claim_date,
+PLACE_SERVICE,
+PROCEDURE_MODIFIER_1,
+PROCEDURE_MODIFIER_2,
+PROCEDURE_MODIFIER_3,
+PROCEDURE_MODIFIER_4,
+LINE_CHARGE
+from sandbox.Claims_submits_procedure 
+where PROCEDURE IN ('02VP0DZ','02VP0ZZ','02VP4DZ','02VP4ZZ','02VQ0DZ','02VQ0ZZ','02VQ4DZ','02VQ4ZZ','02VR0DT','02VR0DZ'										
+,'02VR0ZT','02VR0ZZ','02VR4DT','02VR4DZ','02VR4ZT','02VR4ZZ','02VS0DZ','02VS0ZZ','02VS4DZ','02VS4ZZ'										
+,'02VT0DZ','02VT0ZZ','02VT4DZ','02VT4ZZ','02VW0ZZ','02VW4ZZ','03V00ZZ','03V04ZZ','03V10ZZ','03V14ZZ'										
+,'03V20ZZ','03V24ZZ','03V30ZZ','03V34ZZ','03V40ZZ','03V44ZZ','03V50ZZ','03V54ZZ','03V60ZZ','03V64ZZ'										
+,'03V70ZZ','03V74ZZ','03V80ZZ','03V84ZZ','03V90ZZ','03V94ZZ','03VA0ZZ','03VA4ZZ','03VB0ZZ','03VB4ZZ'										
+,'03VC0ZZ','03VC4ZZ','03VD0ZZ','03VD4ZZ','03VF0ZZ','03VF4ZZ','03VG0ZZ','03VG4ZZ','03VH0ZZ','03VH4ZZ'										
+,'03VJ0ZZ','03VJ4ZZ','03VK0ZZ','03VK4ZZ','03VL0ZZ','03VL4ZZ','03VM0ZZ','03VM4ZZ','03VN0ZZ','03VN4ZZ'										
+,'03VP0ZZ','03VP4ZZ','03VQ0ZZ','03VQ4ZZ','03VR0ZZ','03VR4ZZ','03VS0ZZ','03VS4ZZ','03VT0ZZ','03VT4ZZ'										
+,'03VU0ZZ','03VU4ZZ','03VV0ZZ','03VV4ZZ','03VY0ZZ','03VY4ZZ','04V00DZ','04V00ZZ','04V04ZZ','04V10ZZ'										
+,'04V14ZZ','04V20ZZ','04V24ZZ','04V30ZZ','04V34ZZ','04V40ZZ','04V44ZZ','04V50ZZ','04V54ZZ','04V60ZZ'										
+,'04V64ZZ','04V70ZZ','04V74ZZ','04V80ZZ','04V84ZZ','04V90ZZ','04V94ZZ','04VA0ZZ','04VA4ZZ','04VB0ZZ'										
+,'04VB4ZZ','04VC0ZZ','04VC4ZZ','04VD0ZZ','04VD4ZZ','04VE0ZZ','04VE4ZZ','04VF0ZZ','04VF4ZZ','04VH0ZZ'										
+,'04VH4ZZ','04VJ0ZZ','04VJ4ZZ','04VK0ZZ','04VK4ZZ','04VL0ZZ','04VL4ZZ','04VM0ZZ','04VM4ZZ','04VN0ZZ'										
+,'04VN4ZZ','04VP0ZZ','04VP4ZZ','04VQ0ZZ','04VQ4ZZ','04VR0ZZ','04VR4ZZ','04VS0ZZ','04VS4ZZ','04VT0ZZ'										
+,'04VT4ZZ','04VU0ZZ','04VU4ZZ','04VV0ZZ','04VV4ZZ','04VW0ZZ','04VW4ZZ','04VY0ZZ','04VY4ZZ','05V00ZZ'										
+,'05V04ZZ','05V10ZZ','05V14ZZ','05V30ZZ','05V34ZZ','05V40ZZ','05V44ZZ','05V50ZZ','05V54ZZ','05V60ZZ'										
+,'05V64ZZ','05V70ZZ','05V74ZZ','05V80ZZ','05V84ZZ','05V90ZZ','05V94ZZ','05VA0ZZ','05VA4ZZ','05VB0ZZ'										
+,'05VB4ZZ','05VC0ZZ','05VC4ZZ','05VD0ZZ','05VD4ZZ','05VF0ZZ','05VF4ZZ','05VG0ZZ','05VG4ZZ','05VH0ZZ'										
+,'05VH4ZZ','05VL0ZZ','05VL4ZZ','05VM0ZZ','05VM4ZZ','05VN0ZZ','05VN4ZZ','05VP0ZZ','05VP4ZZ','05VQ0ZZ'										
+,'05VQ4ZZ','05VR0ZZ','05VR4ZZ','05VS0ZZ','05VS4ZZ','05VT0ZZ','05VT4ZZ','05VV0ZZ','05VV4ZZ','05VY0DZ'										
+,'05VY0ZZ','05VY4DZ','05VY4ZZ','06V10ZZ','06V14ZZ','06V20ZZ','06V24ZZ','06V30ZZ','06V34ZZ','06V40ZZ'										
+,'06V44ZZ','06V50ZZ','06V54ZZ','06V60ZZ','06V64ZZ','06V70ZZ','06V74ZZ','06V80ZZ','06V84ZZ','06V90ZZ'										
+,'06V94ZZ','06VB0ZZ','06VB4ZZ','06VC0ZZ','06VC4ZZ','06VD0ZZ','06VD4ZZ','06VF0ZZ','06VF4ZZ','06VG0ZZ'										
+,'06VG4ZZ','06VH0ZZ','06VH4ZZ','06VJ0ZZ','06VJ4ZZ','06VM0ZZ','06VM4ZZ','06VN0ZZ','06VN4ZZ','06VP0ZZ'										
+,'06VP4ZZ','06VQ0ZZ','06VQ4ZZ','06VR0ZZ','06VR4ZZ','06VS0ZZ','06VS4ZZ','06VT0ZZ','06VT4ZZ','06VV0ZZ'										
+,'06VV4ZZ','06VY0DZ','06VY0ZZ','06VY4DZ','06VY4ZZ','3952') ;
+
+
+
+
+CREATE or replace TABLE SANDBOX.HEADER_aneurysmky AS
+SELECT DISTINCT
+  H.CLAIM_NUMBER as CLAIM_NUMBER_H ,
+  H.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_H ,
+  H.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_H,
+  H.RECEIVED_DATE,	
+  H.CLAIM_TYPE_CODE,
+  H.TOTAL_CHARGE,
+  H.DRG_CODE,
+  H.TYPE_BILL,
+  H.ADMISSION_DATE,
+  H.ADMIT_TYPE_CODE,
+  P.CLAIM_NUMBER as CLAIM_NUMBER_P,
+  P.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_P,
+  P.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_P,
+  P.PROCEDURE_TYPE,
+  P.PROCEDURE_CODE,
+  P.PROCEDURE_SEQUENCE,
+  P.STATEMENT_FROM,
+  P.STATEMENT_TO,
+  P.SERVICE_FROM,
+  P.SERVICE_TO,
+  P.claim_date,
+  P.PLACE_SERVICE,
+  P.PROCEDURE_MODIFIER_1,
+  P.PROCEDURE_MODIFIER_2,
+  P.PROCEDURE_MODIFIER_3,
+  P.PROCEDURE_MODIFIER_4,
+  P.LINE_CHARGE,
+  coalesce (P.claim_date, H.RECEIVED_DATE) as Procedure_date
+FROM SANDBOX.PROCEDURE_aneurysmky P
+left JOIN sandbox.Claims_submits_HEADER H
+ON H.CLAIM_NUMBER=P.CLAIM_NUMBER;
+
+
+
+
+alter table SANDBOX.HEADER_aneurysmky
+add column PLACE_SERVICE_MODIFIED varchar;
+
+update SANDBOX.HEADER_aneurysmky
+set PLACE_SERVICE_MODIFIED =  
+    case when CLAIM_NUMBER_H ilike 'vul%' and (PLACE_SERVICE is null or PLACE_SERVICE = 'NULL') 
+    then left(TYPE_BILL,2) else Place_service 
+    end;
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_aneurysmky AS
+SELECT distinct H.*,
+CONCAT(PA.ENCRYPTED_KEY_1,nvl(PA.ENCRYPTED_KEY_2,'')) AS PATIENT_ID
+FROM sandbox.Claims_submits_PATIENT PA
+JOIN SANDBOX.HEADER_aneurysmky H
+ON PA.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_14_17_aneurysmky AS
+select P.*,
+       month(claim_date) as claim_month, 
+       year(claim_date) as claim_year, 
+       day(procedure_date) as procedure_day, 
+       month(procedure_date) as procedure_month, 
+       year(procedure_date) as procedure_year
+from SANDBOX.PATIENT_aneurysmky P
+where procedure_year in ('2012','2013','2014','2015','2016','2017');         
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PROVIDER_14_17_aneurysmky AS
+SELECT distinct H.*,
+PR.PROVIDER_NPI,
+PR.OTHER_PROVIDER_ID,
+PR.PROVIDER_TYPE, 
+PR.CLAIM_SOURCE_SPECIALTY_TAXONOMY
+FROM sandbox.PATIENT_14_17_aneurysmky H
+LEFT JOIN sandbox.Claims_submits_PROVIDER PR
+ON PR.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+
+create or replace table SANDBOX.PAYER_aneurysmky as 
+select distinct A.*,
+                B.ORGANIZATION_NPI,
+                B.ORGANIZATION_LABEL
+from SANDBOX.PROVIDER_14_17_aneurysmky A
+left join sandbox.claims_submits_facility_master_new B
+on A.claim_number_H = B.claim_number
+left join sandbox.claims_submits_facility_master C
+on A.claim_number_H = C.claim_number; 
+
+
+
+
+
+create or replace table SANDBOX.aneurysm_Finalky1 as
+WITH kytable1
+AS
+(
+   SELECT A.*,
+     ROW_NUMBER() OVER(PARTITION BY patient_id, procedure_day, procedure_month, procedure_year
+                       ORDER BY patient_id, procedure_day, procedure_month, procedure_year DESC) AS RN
+   FROM SANDBOX.PAYER_aneurysmky as A
+)
+SELECT claim_number_h, procedure_code, procedure_day, procedure_month, procedure_year, patient_id, provider_npi, 
+
+provider_type, organization_npi, organization_label, rn
+FROM kytable1 WHERE organization_label = 'hospital' and RN = 1; 
+
+
+
+--------------------------------------------------------
+
+
+CREATE or replace TABLE SANDBOX.PROCEDURE_angky AS
+select 
+CLAIM_NUMBER,
+ENCRYPTED_KEY_1,
+ENCRYPTED_KEY_2,
+PROCEDURE_TYPE,
+PROCEDURE AS PROCEDURE_CODE,
+PROCEDURE_SEQUENCE,
+STATEMENT_FROM,
+STATEMENT_TO,
+SERVICE_FROM,
+SERVICE_TO,
+coalesce (SERVICE_FROM, STATEMENT_FROM) as claim_date,
+PLACE_SERVICE,
+PROCEDURE_MODIFIER_1,
+PROCEDURE_MODIFIER_2,
+PROCEDURE_MODIFIER_3,
+PROCEDURE_MODIFIER_4,
+LINE_CHARGE
+from sandbox.Claims_submits_procedure 
+where PROCEDURE in (
+ --00.62--
+'037G34Z','037G3DZ','037G3ZZ','037G44Z','037G4DZ','037G4ZZ','057L3DZ','057L4DZ','0062') ;
+
+
+
+CREATE or replace TABLE SANDBOX.HEADER_angky AS
+SELECT DISTINCT
+  H.CLAIM_NUMBER as CLAIM_NUMBER_H ,
+  H.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_H ,
+  H.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_H,
+  H.RECEIVED_DATE,	
+  H.CLAIM_TYPE_CODE,
+  H.TOTAL_CHARGE,
+  H.DRG_CODE,
+  H.TYPE_BILL,
+  H.ADMISSION_DATE,
+  H.ADMIT_TYPE_CODE,
+  P.CLAIM_NUMBER as CLAIM_NUMBER_P,
+  P.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_P,
+  P.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_P,
+  P.PROCEDURE_TYPE,
+  P.PROCEDURE_CODE,
+  P.PROCEDURE_SEQUENCE,
+  P.STATEMENT_FROM,
+  P.STATEMENT_TO,
+  P.SERVICE_FROM,
+  P.SERVICE_TO,
+  P.claim_date,
+  P.PLACE_SERVICE,
+  P.PROCEDURE_MODIFIER_1,
+  P.PROCEDURE_MODIFIER_2,
+  P.PROCEDURE_MODIFIER_3,
+  P.PROCEDURE_MODIFIER_4,
+  P.LINE_CHARGE,
+  coalesce (P.claim_date, H.RECEIVED_DATE) as Procedure_date
+FROM SANDBOX.PROCEDURE_angky P
+left JOIN sandbox.Claims_submits_HEADER H
+ON H.CLAIM_NUMBER=P.CLAIM_NUMBER;
+
+
+
+
+alter table SANDBOX.HEADER_angky
+add column PLACE_SERVICE_MODIFIED varchar;
+
+update SANDBOX.HEADER_angky
+set PLACE_SERVICE_MODIFIED =  
+    case when CLAIM_NUMBER_H ilike 'vul%' and (PLACE_SERVICE is null or PLACE_SERVICE = 'NULL') 
+    then left(TYPE_BILL,2) else Place_service 
+    end;
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_angky AS
+SELECT distinct H.*,
+CONCAT(PA.ENCRYPTED_KEY_1,nvl(PA.ENCRYPTED_KEY_2,'')) AS PATIENT_ID
+FROM sandbox.Claims_submits_PATIENT PA
+JOIN SANDBOX.HEADER_angky H
+ON PA.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_14_17_angky AS
+select P.*,
+       day(claim_date) as claim_day,
+       month(claim_date) as claim_month, 
+       year(claim_date) as claim_year, 
+       day(procedure_date) as procedure_day,
+       month(procedure_date) as procedure_month, 
+       year(procedure_date) as procedure_year
+from SANDBOX.PATIENT_angky P
+where procedure_year in ('2012','2013', '2014','2015','2016','2017');         
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PROVIDER_14_17_angky AS
+SELECT distinct H.*,
+PR.PROVIDER_NPI,
+PR.OTHER_PROVIDER_ID,
+PR.PROVIDER_TYPE, 
+PR.CLAIM_SOURCE_SPECIALTY_TAXONOMY
+FROM sandbox.PATIENT_14_17_angky H
+LEFT JOIN sandbox.Claims_submits_PROVIDER PR
+ON PR.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+create or replace table SANDBOX.PAYER_angky as 
+select distinct A.*,
+                B.ORGANIZATION_NPI,
+                B.ORGANIZATION_LABEL
+from SANDBOX.PROVIDER_14_17_angky A
+left join sandbox.claims_submits_facility_master_new B
+on A.claim_number_H = B.claim_number
+left join sandbox.claims_submits_facility_master C
+on A.claim_number_H = C.claim_number; 
+
+
+
+
+create or replace table SANDBOX.ang_Finalky1 as
+WITH kytable1
+AS
+(
+   SELECT A.*,
+     ROW_NUMBER() OVER(PARTITION BY patient_id, procedure_day, procedure_month, procedure_year
+                       ORDER BY patient_id, procedure_day, procedure_month, procedure_year DESC) AS RN
+   FROM SANDBOX.PAYER_angky as A
+)
+SELECT claim_number_h, procedure_code, procedure_day, procedure_month, procedure_year, patient_id, provider_npi, provider_type, organization_npi, organization_label, rn
+FROM kytable1 WHERE organization_label = 'hospital' and RN = 1; 
+
+
+
+-------------------------------------------------------
+
+
+CREATE or replace TABLE SANDBOX.PROCEDURE_stentingky AS
+select 
+CLAIM_NUMBER,
+ENCRYPTED_KEY_1,
+ENCRYPTED_KEY_2,
+PROCEDURE_TYPE,
+PROCEDURE AS PROCEDURE_CODE,
+PROCEDURE_SEQUENCE,
+STATEMENT_FROM,
+STATEMENT_TO,
+SERVICE_FROM,
+SERVICE_TO,
+coalesce (SERVICE_FROM, STATEMENT_FROM) as claim_date,
+PLACE_SERVICE,
+PROCEDURE_MODIFIER_1,
+PROCEDURE_MODIFIER_2,
+PROCEDURE_MODIFIER_3,
+PROCEDURE_MODIFIER_4,
+LINE_CHARGE
+from sandbox.Claims_submits_procedure 
+where PROCEDURE IN ('037G34Z','037G3DZ','037G44Z','037G4DZ','057L3DZ','057L4DZ','0065') ;
+
+
+CREATE or replace TABLE SANDBOX.HEADER_stentingky AS
+SELECT DISTINCT
+  H.CLAIM_NUMBER as CLAIM_NUMBER_H ,
+  H.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_H ,
+  H.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_H,
+  H.RECEIVED_DATE,	
+  H.CLAIM_TYPE_CODE,
+  H.TOTAL_CHARGE,
+  H.DRG_CODE,
+  H.TYPE_BILL,
+  H.ADMISSION_DATE,
+  H.ADMIT_TYPE_CODE,
+  P.CLAIM_NUMBER as CLAIM_NUMBER_P,
+  P.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_P,
+  P.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_P,
+  P.PROCEDURE_TYPE,
+  P.PROCEDURE_CODE,
+  P.PROCEDURE_SEQUENCE,
+  P.STATEMENT_FROM,
+  P.STATEMENT_TO,
+  P.SERVICE_FROM,
+  P.SERVICE_TO,
+  P.claim_date,
+  P.PLACE_SERVICE,
+  P.PROCEDURE_MODIFIER_1,
+  P.PROCEDURE_MODIFIER_2,
+  P.PROCEDURE_MODIFIER_3,
+  P.PROCEDURE_MODIFIER_4,
+  P.LINE_CHARGE,
+  coalesce (P.claim_date, H.RECEIVED_DATE) as Procedure_date
+FROM SANDBOX.PROCEDURE_stentingky P
+left JOIN sandbox.Claims_submits_HEADER H
+ON H.CLAIM_NUMBER=P.CLAIM_NUMBER;
+
+
+
+alter table SANDBOX.HEADER_stentingky
+add column PLACE_SERVICE_MODIFIED varchar;
+
+update SANDBOX.HEADER_stentingky
+set PLACE_SERVICE_MODIFIED =  
+    case when CLAIM_NUMBER_H ilike 'vul%' and (PLACE_SERVICE is null or PLACE_SERVICE = 'NULL') 
+    then left(TYPE_BILL,2) else Place_service 
+    end;
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_stentingky AS
+SELECT distinct H.*,
+CONCAT(PA.ENCRYPTED_KEY_1,nvl(PA.ENCRYPTED_KEY_2,'')) AS PATIENT_ID
+FROM sandbox.Claims_submits_PATIENT PA
+JOIN SANDBOX.HEADER_stentingky H
+ON PA.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_14_17_stentingky AS
+select P.*,
+       month(claim_date) as claim_month, 
+       year(claim_date) as claim_year, 
+       day(procedure_date) as procedure_day, 
+       month(procedure_date) as procedure_month, 
+       year(procedure_date) as procedure_year
+from SANDBOX.PATIENT_stentingky P
+where procedure_year in ('2012','2013','2014','2015','2016','2017');         
+
+
+CREATE OR REPLACE TABLE SANDBOX.PROVIDER_14_17_stentingky AS
+SELECT distinct H.*,
+PR.PROVIDER_NPI,
+PR.OTHER_PROVIDER_ID,
+PR.PROVIDER_TYPE, 
+PR.CLAIM_SOURCE_SPECIALTY_TAXONOMY
+FROM sandbox.PATIENT_14_17_stentingky H
+LEFT JOIN sandbox.Claims_submits_PROVIDER PR
+ON PR.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+
+create or replace table SANDBOX.PAYER_stentingky as 
+select distinct A.*,
+                B.ORGANIZATION_NPI,
+                B.ORGANIZATION_LABEL
+from SANDBOX.PROVIDER_14_17_stentingky A
+left join sandbox.claims_submits_facility_master_new B
+on A.claim_number_H = B.claim_number
+left join sandbox.claims_submits_facility_master C
+on A.claim_number_H = C.claim_number; 
+
+
+
+create or replace table SANDBOX.stenting_Finalky1 as
+WITH kytable1
+AS
+(
+   SELECT A.*,
+     ROW_NUMBER() OVER(PARTITION BY patient_id, procedure_day, procedure_month, procedure_year
+                       ORDER BY patient_id, procedure_day, procedure_month, procedure_year DESC) AS RN
+   FROM SANDBOX.PAYER_stentingky as A
+)
+SELECT claim_number_h, procedure_code, procedure_day, procedure_month, procedure_year, patient_id, provider_npi, provider_type, organization_npi, organization_label, rn
+FROM kytable1 WHERE organization_label = 'hospital' and RN = 1; 
+
+
+
+-------------------------------------------------------------
+
+
+CREATE or replace TABLE SANDBOX.PROCEDURE_Thromky AS
+select 
+CLAIM_NUMBER,
+ENCRYPTED_KEY_1,
+ENCRYPTED_KEY_2,
+PROCEDURE_TYPE,
+PROCEDURE AS PROCEDURE_CODE,
+PROCEDURE_SEQUENCE,
+STATEMENT_FROM,
+STATEMENT_TO,
+SERVICE_FROM,
+SERVICE_TO,
+coalesce (SERVICE_FROM, STATEMENT_FROM) as claim_date,
+PLACE_SERVICE,
+PROCEDURE_MODIFIER_1,
+PROCEDURE_MODIFIER_2,
+PROCEDURE_MODIFIER_3,
+PROCEDURE_MODIFIER_4,
+LINE_CHARGE
+from sandbox.Claims_submits_procedure 
+where PROCEDURE in (
+ --39.74--
+'03CG3ZZ','03CG4ZZ','03CH3ZZ','03CH4ZZ','03CJ3ZZ','03CJ4ZZ','03CK3ZZ','03CK4ZZ','03CL3ZZ','03CL4ZZ'
+,'03CM3ZZ','03CM4ZZ','03CN3ZZ','03CN4ZZ','03CP3ZZ','03CP4ZZ','03CQ3ZZ','03CQ4ZZ','03CR3ZZ','03CR4ZZ'
+,'03CS3ZZ','03CS4ZZ','03CT3ZZ','03CT4ZZ','03CU3ZZ','03CU4ZZ','03CV3ZZ','03CV4ZZ','3974') ;
+
+
+
+CREATE or replace TABLE SANDBOX.HEADER_Thromky AS
+SELECT DISTINCT
+  H.CLAIM_NUMBER as CLAIM_NUMBER_H ,
+  H.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_H ,
+  H.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_H,
+  H.RECEIVED_DATE,	
+  H.CLAIM_TYPE_CODE,
+  H.TOTAL_CHARGE,
+  H.DRG_CODE,
+  H.TYPE_BILL,
+  H.ADMISSION_DATE,
+  H.ADMIT_TYPE_CODE,
+  P.CLAIM_NUMBER as CLAIM_NUMBER_P,
+  P.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_P,
+  P.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_P,
+  P.PROCEDURE_TYPE,
+  P.PROCEDURE_CODE,
+  P.PROCEDURE_SEQUENCE,
+  P.STATEMENT_FROM,
+  P.STATEMENT_TO,
+  P.SERVICE_FROM,
+  P.SERVICE_TO,
+  P.claim_date,
+  P.PLACE_SERVICE,
+  P.PROCEDURE_MODIFIER_1,
+  P.PROCEDURE_MODIFIER_2,
+  P.PROCEDURE_MODIFIER_3,
+  P.PROCEDURE_MODIFIER_4,
+  P.LINE_CHARGE,
+  coalesce (P.claim_date, H.RECEIVED_DATE) as Procedure_date
+FROM SANDBOX.PROCEDURE_Thromky P
+left JOIN sandbox.Claims_submits_HEADER H
+ON H.CLAIM_NUMBER=P.CLAIM_NUMBER;
+
+
+
+alter table SANDBOX.HEADER_Thromky
+add column PLACE_SERVICE_MODIFIED varchar;
+
+update SANDBOX.HEADER_Thromky
+set PLACE_SERVICE_MODIFIED =  
+    case when CLAIM_NUMBER_H ilike 'vul%' and (PLACE_SERVICE is null or PLACE_SERVICE = 'NULL') 
+    then left(TYPE_BILL,2) else Place_service 
+    end;
+
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_Thromky AS
+SELECT distinct H.*,
+CONCAT(PA.ENCRYPTED_KEY_1,nvl(PA.ENCRYPTED_KEY_2,'')) AS PATIENT_ID
+FROM sandbox.Claims_submits_PATIENT PA
+JOIN SANDBOX.HEADER_Thromky H
+ON PA.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_14_17_Thromky AS
+select P.*,
+       month(claim_date) as claim_month, 
+       year(claim_date) as claim_year, 
+       day(procedure_date) as procedure_day,
+       month(procedure_date) as procedure_month, 
+       year(procedure_date) as procedure_year
+from SANDBOX.PATIENT_Thromky P
+where procedure_year in ('2012','2013','2014','2015','2016','2017');         
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PROVIDER_14_17_Thromky AS
+SELECT distinct H.*,
+PR.PROVIDER_NPI,
+PR.OTHER_PROVIDER_ID,
+PR.PROVIDER_TYPE, 
+PR.CLAIM_SOURCE_SPECIALTY_TAXONOMY
+FROM sandbox.PATIENT_14_17_Thromky H
+LEFT JOIN sandbox.Claims_submits_PROVIDER PR
+ON PR.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+create or replace table SANDBOX.PAYER_Thromky as 
+select distinct A.*,
+                B.ORGANIZATION_NPI,
+                B.ORGANIZATION_LABEL
+from SANDBOX.PROVIDER_14_17_Thromky A
+left join sandbox.claims_submits_facility_master_new B
+on A.claim_number_H = B.claim_number
+left join sandbox.claims_submits_facility_master C
+on A.claim_number_H = C.claim_number; 
+
+
+
+
+create or replace table SANDBOX.Throm_Finalky1 as
+WITH kytable1
+AS
+(
+   SELECT A.*,
+     ROW_NUMBER() OVER(PARTITION BY patient_id, procedure_day, procedure_month, procedure_year
+                       ORDER BY patient_id, procedure_day, procedure_month, procedure_year DESC) AS RN
+   FROM SANDBOX.PAYER_Thromky as A
+)
+SELECT claim_number_h, procedure_code, procedure_day, procedure_month, procedure_year, patient_id, provider_npi, provider_type, organization_npi, organization_label, rn
+FROM kytable1 WHERE organization_label = 'hospital' and RN = 1; 
+
+
+
+
+-------------------------------------------------------------
+
+
+
+CREATE or replace TABLE SANDBOX.PROCEDURE_lyticsky AS
+select 
+CLAIM_NUMBER,
+ENCRYPTED_KEY_1,
+ENCRYPTED_KEY_2,
+PROCEDURE_TYPE,
+PROCEDURE AS PROCEDURE_CODE,
+PROCEDURE_SEQUENCE,
+STATEMENT_FROM,
+STATEMENT_TO,
+SERVICE_FROM,
+SERVICE_TO,
+coalesce (SERVICE_FROM, STATEMENT_FROM) as claim_date,
+PLACE_SERVICE,
+PROCEDURE_MODIFIER_1,
+PROCEDURE_MODIFIER_2,
+PROCEDURE_MODIFIER_3,
+PROCEDURE_MODIFIER_4,
+LINE_CHARGE
+from sandbox.Claims_submits_procedure 
+where PROCEDURE IN ('3E03017','3E03317','3E04017','3E04317','3E05017','3E05317','3E06017','3E06317','3E08017','3E08317','9910') ;
+
+
+
+
+CREATE or replace TABLE SANDBOX.HEADER_lyticsky AS
+SELECT DISTINCT
+  H.CLAIM_NUMBER as CLAIM_NUMBER_H ,
+  H.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_H ,
+  H.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_H,
+  H.RECEIVED_DATE,	
+  H.CLAIM_TYPE_CODE,
+  H.TOTAL_CHARGE,
+  H.DRG_CODE,
+  H.TYPE_BILL,
+  H.ADMISSION_DATE,
+  H.ADMIT_TYPE_CODE,
+  P.CLAIM_NUMBER as CLAIM_NUMBER_P,
+  P.ENCRYPTED_KEY_1 as ENCRYPTED_KEY_1_P,
+  P.ENCRYPTED_KEY_2 as ENCRYPTED_KEY_2_P,
+  P.PROCEDURE_TYPE,
+  P.PROCEDURE_CODE,
+  P.PROCEDURE_SEQUENCE,
+  P.STATEMENT_FROM,
+  P.STATEMENT_TO,
+  P.SERVICE_FROM,
+  P.SERVICE_TO,
+  P.claim_date,
+  P.PLACE_SERVICE,
+  P.PROCEDURE_MODIFIER_1,
+  P.PROCEDURE_MODIFIER_2,
+  P.PROCEDURE_MODIFIER_3,
+  P.PROCEDURE_MODIFIER_4,
+  P.LINE_CHARGE,
+  coalesce (P.claim_date, H.RECEIVED_DATE) as Procedure_date
+FROM SANDBOX.PROCEDURE_lyticsky P
+left JOIN sandbox.Claims_submits_HEADER H
+ON H.CLAIM_NUMBER=P.CLAIM_NUMBER;
+
+
+
+
+alter table SANDBOX.HEADER_lyticsky
+add column PLACE_SERVICE_MODIFIED varchar;
+
+update SANDBOX.HEADER_lyticsky
+set PLACE_SERVICE_MODIFIED =  
+    case when CLAIM_NUMBER_H ilike 'vul%' and (PLACE_SERVICE is null or PLACE_SERVICE = 'NULL') 
+    then left(TYPE_BILL,2) else Place_service 
+    end;
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_lyticsky AS
+SELECT distinct H.*,
+CONCAT(PA.ENCRYPTED_KEY_1,nvl(PA.ENCRYPTED_KEY_2,'')) AS PATIENT_ID
+FROM sandbox.Claims_submits_PATIENT PA
+JOIN SANDBOX.HEADER_lyticsky H
+ON PA.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PATIENT_14_17_lyticsky AS
+select P.*,
+       month(claim_date) as claim_month, 
+       year(claim_date) as claim_year, 
+       day(procedure_date) as procedure_day, 
+       month(procedure_date) as procedure_month, 
+       year(procedure_date) as procedure_year
+from SANDBOX.PATIENT_lyticsky P
+where procedure_year in ('2012','2013','2014','2015','2016','2017');         
+
+
+
+CREATE OR REPLACE TABLE SANDBOX.PROVIDER_14_17_lyticsky AS
+SELECT distinct H.*,
+PR.PROVIDER_NPI,
+PR.OTHER_PROVIDER_ID,
+PR.PROVIDER_TYPE, 
+PR.CLAIM_SOURCE_SPECIALTY_TAXONOMY
+FROM sandbox.PATIENT_14_17_lyticsky H
+LEFT JOIN sandbox.Claims_submits_PROVIDER PR
+ON PR.CLAIM_NUMBER=H.CLAIM_NUMBER_H; 
+
+
+
+create or replace table SANDBOX.PAYER_lyticsky as 
+select distinct A.*,
+                B.ORGANIZATION_NPI,
+                B.ORGANIZATION_LABEL
+from SANDBOX.PROVIDER_14_17_lyticsky A
+left join sandbox.claims_submits_facility_master_new B
+on A.claim_number_H = B.claim_number
+left join sandbox.claims_submits_facility_master C
+on A.claim_number_H = C.claim_number; 
+
+
+
+create or replace table SANDBOX.lytics_Finalky1 as
+WITH kytable1
+AS
+(
+   SELECT A.*,
+     ROW_NUMBER() OVER(PARTITION BY patient_id, procedure_day, procedure_month, procedure_year
+                       ORDER BY patient_id, procedure_day, procedure_month, procedure_year DESC) AS RN
+   FROM SANDBOX.PAYER_lyticsky as A
+)
+SELECT claim_number_h, procedure_code, procedure_day, procedure_month, procedure_year, patient_id, provider_npi, provider_type, organization_npi, organization_label, rn
+FROM kytable1 WHERE organization_label = 'hospital' and RN = 1; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
