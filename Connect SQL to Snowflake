@@ -1,0 +1,23 @@
+install.packages('RJDBC')
+install.packages('rJava')
+library(rJava)
+library(RJDBC)
+
+#Set up the JDBC driver
+jdbcDriver <- JDBC(driverClass="com.snowflake.client.jdbc.SnowflakeDriver",
+                   classPath="C:/snowflake-jdbc-3.3.1.jar") #location of the snowflake JDBC file
+
+#Connect to the JDBC driver.  Please wait a minute for your browser to open up and confirm that you are connected
+jdbcConnection <- dbConnect(jdbcDriver, 
+                            "jdbc:snowflake://bc04740.snowflakecomputing.com",
+                            "pcronin@teamdrg.com",   #insert username
+                            "",
+                            authenticator="externalbrowser",
+                            role = "RWD_SANDBOX") #Insert a snowflake role, "RWD_SANDBOX is the standard role and custom roles work as well
+
+#Pull a table directly into R (You can pull from rwd, sandbox, or project_analytics custom schemas as well)
+redbook = dbGetQuery(jdbcConnection,"select * from rwd_db.rwd.redbook_copy limit 100")
+
+#Disconnect your connection when your done
+dbDisconnect(jdbcConnection)
+
